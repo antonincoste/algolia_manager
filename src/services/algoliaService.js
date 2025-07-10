@@ -1,5 +1,4 @@
-import algoliasearch from 'algoliasearch/lite';
-
+import algoliasearch from 'algoliasearch';
 
 const algoliaClient = (appId, apiKey) => {
   return algoliasearch(appId, apiKey);

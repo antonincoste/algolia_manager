@@ -1,7 +1,7 @@
 // src/pages/BulkUpdateByDistinct.js
 import React, { useRef, useState } from 'react';
 import { getApiKey } from '../services/sessionService';
-import algoliasearch from 'algoliasearch/lite';
+import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';

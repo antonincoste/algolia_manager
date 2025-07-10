@@ -1,7 +1,7 @@
 // src/pages/UpdateAttributes.js
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import algoliasearch from 'algoliasearch/lite';
+import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import { getApiKey } from '../services/sessionService';

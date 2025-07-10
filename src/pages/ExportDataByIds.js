@@ -1,6 +1,6 @@
 // src/pages/ExportByID.js
 import React, { useState } from 'react';
-import { algoliasearch } from 'algoliasearch';
+import algoliasearch from 'algoliasearch/lite';
 import { getApiKey } from '../services/sessionService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';

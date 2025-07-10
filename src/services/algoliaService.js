@@ -1,4 +1,4 @@
-import algoliasearch from 'algoliasearch';
+import { algoliasearch } from 'algoliasearch';
 
 const algoliaClient = (appId, apiKey) => {
   return algoliasearch(appId, apiKey);

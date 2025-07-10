@@ -85,7 +85,7 @@ const ExportData = () => {
       <InfoBlock title="About this feature">
         This tool allows you to export records from an Algolia index by using the <code>attributeForDistinct</code> setting configured on your index.
         <br /><br />
-        👉 After entering your <strong>App ID</strong> and <strong>Index Name</strong>, click on <strong>“Sync Index Settings”</strong> to automatically detect the distinct attribute used in your index configuration.
+        👉 After entering your <strong>App ID</strong> and <strong>Index Name</strong>, click on <strong>“Sync Data Model</strong> to automatically detect the distinct attribute used in your index configuration.
         <br /><br />
         ✅ Once the distinct attribute is retrieved, you can paste a list of product codes (one per line) corresponding to this attribute.
         <br /><br />
@@ -107,7 +107,7 @@ const ExportData = () => {
             <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
           </div>
           <div>
-            <StyledButton onClick={synchronizeDataModel} label="Sync Index Settings" icon="🔄" color="#2c3e50" />
+            <StyledButton onClick={synchronizeDataModel} label="Sync Data Model" icon="🔄" color="#2c3e50" />
           </div>
         </div>
       </SectionBlock>

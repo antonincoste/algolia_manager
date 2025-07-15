@@ -34,9 +34,6 @@ const Home = () => {
         </p>
       </InfoBlock>
 
-    <br /><p>The tool is free to use, but if you enjoyed it, you can say thanks here. Thanks</p>
-    <a href="https://www.buymeacoffee.com/antonincoste" target='_blank'><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a pizza&emoji=🍕&slug=antonincoste&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>
-
     </div>
   );
 };

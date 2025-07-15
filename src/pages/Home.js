@@ -9,20 +9,12 @@ const Home = () => {
 
       <InfoBlock title="About this application">
         <p>
-          This tool helps you perform advanced operations on your Algolia indexes — such as exporting data, updating attributes, and syncing models — all from a single interface.
+          This tool helps you perform advanced exports on your Algolia indexes all from a single interface.
         </p>
-
-        <p>
-          Use the menu on the left to:
-        </p>
-        <ul>
-          <li>Export product data based on filters, object IDs, or distinct attribute values</li>
-          <li>Update existing records by importing a CSV file</li>
-        </ul>
 
         <p>
           Before using any feature, make sure to set your API Key (at the bottom of the sidebar).<br />
-          A <strong>Write API Key</strong> is required for update operations.
+          A <strong>Write API Key</strong> is required for update operations (or at least any API key with "browse" ACLs)
         </p>
 
         <p style={{ fontWeight: 'bold', fontSize: '16px', color: 'red', marginTop: '20px' }}>

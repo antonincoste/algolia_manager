@@ -14,7 +14,7 @@ const Home = () => {
 
         <p>
           Before using any feature, make sure to set your API Key (at the bottom of the sidebar).<br />
-          A <strong>Write API Key</strong> is required for update operations (or at least any API key with "browse" ACLs)
+          A <strong>Write API Key</strong> is required for update operations
         </p>
 
         <p style={{ fontWeight: 'bold', fontSize: '16px', color: 'red', marginTop: '20px' }}>

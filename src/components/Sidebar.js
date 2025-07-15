@@ -109,7 +109,7 @@ const Sidebar = () => {
     <SidebarContainer>
       <div>
         <ProfileSection>
-          <ProfileImage>AC</ProfileImage> {/* Initiales ou image de profil */}
+          <ProfileImage>AC</ProfileImage>
           <ProfileName></ProfileName>
           <ProfileEmail></ProfileEmail>
           <ProfileLinkedin
@@ -117,7 +117,7 @@ const Sidebar = () => {
           //target="_blank"
           //rel="noopener noreferrer"
         >
-          
+
         </ProfileLinkedin>
         </ProfileSection>
 
@@ -144,18 +144,6 @@ const Sidebar = () => {
             <MenuLink to="/exportbydistinct" className={location.pathname === '/exportbydistinct' ? 'active' : ''}>
               <Icon>⤴️</Icon>
               Export products by distinct attribute
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/update" className={location.pathname === '/update' ? 'active' : ''}>
-              <Icon>⤵️</Icon>
-              Update product attributes
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
-              <Icon>⤵️</Icon>
-              Update by distinct
             </MenuLink>
           </MenuItem>
         </Menu>

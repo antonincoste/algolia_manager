@@ -110,14 +110,14 @@ const Sidebar = () => {
       <div>
         <ProfileSection>
           <ProfileImage>AC</ProfileImage> {/* Initiales ou image de profil */}
-          <ProfileName>Antonin Coste</ProfileName>
-          <ProfileEmail>antonin@internetcompany.fr</ProfileEmail>
+          <ProfileName></ProfileName>
+          <ProfileEmail></ProfileEmail>
           <ProfileLinkedin
-          href="https://www.linkedin.com/in/antonin-coste-4b9b6749/"
-          target="_blank"
-          rel="noopener noreferrer"
+          //href="https://www.linkedin.com/in/antonin-coste-4b9b6749/"
+          //target="_blank"
+          //rel="noopener noreferrer"
         >
-          LinkedIn
+          
         </ProfileLinkedin>
         </ProfileSection>
 

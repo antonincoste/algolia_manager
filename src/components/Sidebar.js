@@ -112,13 +112,6 @@ const Sidebar = () => {
           <ProfileImage>AC</ProfileImage>
           <ProfileName></ProfileName>
           <ProfileEmail></ProfileEmail>
-          <ProfileLinkedin
-          //href="https://www.linkedin.com/in/antonin-coste-4b9b6749/"
-          //target="_blank"
-          //rel="noopener noreferrer"
-        >
-
-        </ProfileLinkedin>
         </ProfileSection>
 
         <Menu>
@@ -144,6 +137,18 @@ const Sidebar = () => {
             <MenuLink to="/exportbydistinct" className={location.pathname === '/exportbydistinct' ? 'active' : ''}>
               <Icon>⤴️</Icon>
               Export products by distinct attribute
+            </MenuLink>
+          </MenuItem>
+          <MenuItem>
+            <MenuLink to="/update" className={location.pathname === '/update' ? 'active' : ''}>
+              <Icon>⤵️</Icon>
+              Update product attributes
+            </MenuLink>
+          </MenuItem>
+          <MenuItem>
+            <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
+              <Icon>⤵️</Icon>
+              Update by distinct
             </MenuLink>
           </MenuItem>
         </Menu>

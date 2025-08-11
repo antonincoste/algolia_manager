@@ -137,7 +137,7 @@ const CopyData = () => {
         <br /><br />
         You can copy data within the same application or to a different one by providing separate credentials.
         <br /><br />
-        ⚠️ **Warning:** This will overwrite any existing objects in the target index(es) that have the same `objectID`.
+        ⚠️ <b>Warning:</b> This will overwrite any existing objects in the target index(es) that have the same `objectID`.
       </InfoBlock>
 
       <SectionBlock title="Configuration">

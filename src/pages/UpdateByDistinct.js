@@ -5,6 +5,7 @@ import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
+import FullPageLoader from '../components/FullPageLoader'; // NOUVEAU : Importer le loader
 
 const BulkUpdateByDistinct = () => {
   const [appId, setAppId] = useState('');
@@ -15,15 +16,14 @@ const BulkUpdateByDistinct = () => {
   const [error, setError] = useState('');
   const [previewRows, setPreviewRows] = useState([]);
   const [indexResults, setIndexResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // NOUVEAU : État pour le loader
   const apiKey = getApiKey();
 
   const fileInputRef = useRef();
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
-    if (!file) {
-      return; // Ne rien faire si l'utilisateur annule la sélection
-    }
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target.result;
@@ -33,10 +33,6 @@ const BulkUpdateByDistinct = () => {
       setError('');
       setLog('');
       setIndexResults([]);
-
-      // AJOUT : Réinitialiser la valeur du champ de fichier
-      // Cela permet de déclencher l'événement onChange même si l'utilisateur
-      // sélectionne le même fichier une seconde fois.
       if (fileInputRef.current) {
         fileInputRef.current.value = null;
       }
@@ -44,6 +40,7 @@ const BulkUpdateByDistinct = () => {
     reader.readAsText(file);
   };
 
+  // MODIFIÉ : La fonction handleUpdate est maintenant 'async' et gère l'état de chargement
   const handleUpdate = async () => {
     setError('');
     setLog('');
@@ -54,6 +51,7 @@ const BulkUpdateByDistinct = () => {
       return;
     }
 
+    setIsLoading(true); // NOUVEAU : Démarrer le loader
     setLog('Updating objects...');
 
     try {
@@ -64,29 +62,24 @@ const BulkUpdateByDistinct = () => {
       for (const indexName of indexes) {
         try {
           const index = client.initIndex(indexName);
-
-          // On commence à la deuxième ligne (index 1), car la première est l'en-tête
           for (let i = 1; i < fileContent.length; i++) {
             const row = fileContent[i];
             const [distinctValue, ...rest] = row;
             const headers = fileContent[0];
             const updateFields = {};
-            
-            // On commence à la deuxième colonne (index 1) pour les en-têtes
             for (let j = 1; j < headers.length; j++) {
-              const valueToParse = rest[j - 1] || 'null';
-              try {
-                  updateFields[headers[j]] = JSON.parse(valueToParse);
-              } catch (e) {
-                  // Si JSON.parse échoue, on traite la valeur comme une simple chaîne
-                  updateFields[headers[j]] = valueToParse;
-              }
+                const valueToParse = rest[j - 1] || 'null';
+                try {
+                    updateFields[headers[j]] = JSON.parse(valueToParse);
+                } catch (e) {
+                    updateFields[headers[j]] = valueToParse;
+                }
             }
 
             const matchingObjectIDs = [];
             await index.browseObjects({
               query: '',
-              filters: `${distinctAttr}:"${distinctValue}"`, // Encadrer la valeur avec des guillemets pour la robustesse
+              filters: `${distinctAttr}:"${distinctValue}"`,
               attributesToRetrieve: ['objectID'],
               batch: (batch) => {
                 matchingObjectIDs.push(...batch.map(obj => obj.objectID));
@@ -98,7 +91,6 @@ const BulkUpdateByDistinct = () => {
                 await index.partialUpdateObjects(updates);
             }
           }
-
           results.push({ indexName, status: 'success' });
         } catch (err) {
           results.push({ indexName, status: 'error', message: err.message });
@@ -109,6 +101,8 @@ const BulkUpdateByDistinct = () => {
       setLog('All updates completed.');
     } catch (err) {
       setError('Unexpected error: ' + err.message);
+    } finally {
+      setIsLoading(false); // NOUVEAU : Arrêter le loader dans tous les cas (succès ou erreur)
     }
   };
 
@@ -126,7 +120,12 @@ const BulkUpdateByDistinct = () => {
 
   return (
     <div style={{ marginLeft: '260px', padding: '20px' }}>
+      {/* NOUVEAU : Afficher le loader en fonction de son état */}
+      <FullPageLoader isLoading={isLoading} />
+
       <h1>Bulk Update by Distinct Attribute</h1>
+
+      {/* ... le reste de votre JSX ne change pas ... */}
 
       <InfoBlock title="About this feature">
         This module allows you to update all records that share the same <code>distinct</code> value by importing a CSV file.

@@ -21,6 +21,9 @@ const BulkUpdateByDistinct = () => {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    if (!file) {
+      return; // Ne rien faire si l'utilisateur annule la sélection
+    }
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target.result;
@@ -30,6 +33,13 @@ const BulkUpdateByDistinct = () => {
       setError('');
       setLog('');
       setIndexResults([]);
+
+      // AJOUT : Réinitialiser la valeur du champ de fichier
+      // Cela permet de déclencher l'événement onChange même si l'utilisateur
+      // sélectionne le même fichier une seconde fois.
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
     };
     reader.readAsText(file);
   };
@@ -55,27 +65,38 @@ const BulkUpdateByDistinct = () => {
         try {
           const index = client.initIndex(indexName);
 
-          for (const [i, row] of fileContent.entries()) {
-            if (i === 0) continue;
+          // On commence à la deuxième ligne (index 1), car la première est l'en-tête
+          for (let i = 1; i < fileContent.length; i++) {
+            const row = fileContent[i];
             const [distinctValue, ...rest] = row;
             const headers = fileContent[0];
             const updateFields = {};
+            
+            // On commence à la deuxième colonne (index 1) pour les en-têtes
             for (let j = 1; j < headers.length; j++) {
-              updateFields[headers[j]] = JSON.parse(rest[j - 1] || 'null');
+              const valueToParse = rest[j - 1] || 'null';
+              try {
+                  updateFields[headers[j]] = JSON.parse(valueToParse);
+              } catch (e) {
+                  // Si JSON.parse échoue, on traite la valeur comme une simple chaîne
+                  updateFields[headers[j]] = valueToParse;
+              }
             }
 
             const matchingObjectIDs = [];
             await index.browseObjects({
               query: '',
-              filters: `${distinctAttr}:${distinctValue}`,
+              filters: `${distinctAttr}:"${distinctValue}"`, // Encadrer la valeur avec des guillemets pour la robustesse
               attributesToRetrieve: ['objectID'],
               batch: (batch) => {
                 matchingObjectIDs.push(...batch.map(obj => obj.objectID));
               }
             });
 
-            const updates = matchingObjectIDs.map(objectID => ({ objectID, ...updateFields }));
-            await index.partialUpdateObjects(updates);
+            if (matchingObjectIDs.length > 0) {
+                const updates = matchingObjectIDs.map(objectID => ({ objectID, ...updateFields }));
+                await index.partialUpdateObjects(updates);
+            }
           }
 
           results.push({ indexName, status: 'success' });
@@ -92,7 +113,7 @@ const BulkUpdateByDistinct = () => {
   };
 
   const handleDownloadExample = () => {
-    const exampleCsv = 'distinctAttribute;productName;productColor\n553770WHFBU9042;Shoes;Red';
+    const exampleCsv = 'distinctAttribute;productName;productColor;price\n553770WHFBU9042;"Amazing Shoes";"Red";120.50';
     const blob = new Blob([exampleCsv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -112,7 +133,7 @@ const BulkUpdateByDistinct = () => {
         <br /><br />
         👉 Enter the <strong>App ID</strong>, <strong>Index Name(s)</strong> and <strong>Distinct Attribute</strong> (used in your index).
         <br /><br />
-        📄 The CSV should contain one line per distinct value, with the first column matching your distinct attribute, and the other columns for fields to update.
+        📄 The CSV should contain one line per distinct value, with the first column matching your distinct attribute, and the other columns for fields to update. The first row must be the headers.
         <br /><br />
         🗁 The system will fetch all matching <code>objectIDs</code> and update them using <code>partialUpdateObjects</code>.
       </InfoBlock>

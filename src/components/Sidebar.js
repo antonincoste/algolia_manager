@@ -49,17 +49,6 @@ const ProfileEmail = styled.div`
   color: #777;
 `;
 
-const ProfileLinkedin = styled.a`
-  font-size: 14px;
-  color: #0077b5;
-  text-decoration: none;
-  margin-top: 1px;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
 const Menu = styled.ul`
   list-style-type: none;
   padding: 0;
@@ -151,6 +140,7 @@ const sectionMapping = {
   '/copy': 'dataManagement',
   '/generate-events': 'devMode',
   '/copy-data': 'devMode',
+  '/delete-objects': 'dataManagement',
 };
 
 const Sidebar = () => {
@@ -187,19 +177,19 @@ const Sidebar = () => {
               <AccordionIcon isOpen={openSection === 'devMode'}>▼</AccordionIcon>
             </MenuGroupTitle>
             <SubMenu isOpen={openSection === 'devMode'}>
-                        <MenuItem>
-                            <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
-                                <Icon>🔄</Icon>
-                                Copy Data
-                            </MenuLink>
-                        </MenuItem>
-                        <MenuItem>
-                            <MenuLink to="/generate-events" className={location.pathname === '/generate-events' ? 'active' : ''}>
-                                <Icon>🆕</Icon>
-                                Generate fake events
-                            </MenuLink>
-                        </MenuItem>
-                    </SubMenu>
+                    <MenuItem>
+                        <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
+                            <Icon>🔄</Icon>
+                            Copy Data
+                        </MenuLink>
+                    </MenuItem>
+                    <MenuItem>
+                        <MenuLink to="/generate-events" className={location.pathname === '/generate-events' ? 'active' : ''}>
+                            <Icon>🆕</Icon>
+                             Generate fake events
+                        </MenuLink>
+                    </MenuItem>
+            </SubMenu>
           </MenuGroup>
 
           <MenuGroup>
@@ -236,6 +226,12 @@ const Sidebar = () => {
                 <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
                   <Icon>⤴️</Icon>
                   Update by Distinct attribute
+                </MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/delete-objects" className={location.pathname === '/delete-objects' ? 'active' : ''}>
+                     <Icon>🚮</Icon>
+                    Delete Objects
                 </MenuLink>
               </MenuItem>
             </SubMenu>

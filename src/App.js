@@ -12,6 +12,7 @@ import UpdateAttributes from './pages/UpdateAttributes';
 import UpdateByDistinct from './pages/UpdateByDistinct';
 import CopyData from './pages/CopyData';
 import GenerateFakeEvents from './pages/GenerateFakeEvents';
+import DeleteObjects from './pages/DeleteObjects';
 
 
 // NOUVEAU : Style pour le conteneur du contenu principal
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/copy" element={<CopyRecommendations />} />
             <Route path="/copy-data" element={<CopyData />} />
             <Route path="/generate-events" element={<GenerateFakeEvents />} />
+            <Route path="/delete-objects" element={<DeleteObjects />} />
           </Routes>
         </main>
       </div>

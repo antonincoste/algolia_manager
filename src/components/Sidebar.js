@@ -149,7 +149,8 @@ const sectionMapping = {
   '/updatebydistinct': 'dataManagement',
   '/offline': 'dataManagement',
   '/copy': 'dataManagement',
-  // Ajoutez les futurs chemins ici (ex: '/dev-feature': 'devMode')
+  '/generate-events': 'devMode',
+  '/copy-data': 'devMode',
 };
 
 const Sidebar = () => {
@@ -190,6 +191,12 @@ const Sidebar = () => {
                             <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
                                 <Icon>🔄</Icon>
                                 Copy Data
+                            </MenuLink>
+                        </MenuItem>
+                        <MenuItem>
+                            <MenuLink to="/generate-events" className={location.pathname === '/generate-events' ? 'active' : ''}>
+                                <Icon>🆕</Icon>
+                                Generate fake events
                             </MenuLink>
                         </MenuItem>
                     </SubMenu>

@@ -1,5 +1,5 @@
+// src/pages/BulkUpdateByDistinct.js
 import React, { useRef, useState } from 'react';
-// MODIFIÉ : On importe aussi getAppId
 import { getApiKey, getAppId } from '../services/sessionService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
@@ -8,9 +8,6 @@ import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
 const BulkUpdateByDistinct = () => {
-  // SUPPRIMÉ : L'état local pour l'appId a été enlevé
-  // const [appId, setAppId] = useState('');
-  
   const [indexNames, setIndexNames] = useState('');
   const [distinctAttr, setDistinctAttr] = useState('');
   const [fileContent, setFileContent] = useState(null);
@@ -20,11 +17,45 @@ const BulkUpdateByDistinct = () => {
   const [indexResults, setIndexResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // AJOUTÉ : On récupère l'App ID et la clé API depuis le service
   const apiKey = getApiKey();
   const appId = getAppId();
 
   const fileInputRef = useRef();
+
+  const fetchDistinctAttribute = async () => {
+    const firstIndex = indexNames.split(/[\s,;|\n]+/)[0];
+    if (!firstIndex) {
+      setError("Please enter at least one index name first.");
+      return;
+    }
+    
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+    setLog(`Fetching settings for index '${firstIndex}'...`);
+
+    try {
+      const client = algoliasearch(appId, apiKey);
+      const index = client.initIndex(firstIndex);
+      const settings = await index.getSettings();
+      
+      if (settings.attributeForDistinct) {
+        setDistinctAttr(settings.attributeForDistinct);
+        setLog(`✅ Distinct attribute found: ${settings.attributeForDistinct}`);
+      } else {
+        setDistinctAttr('');
+        setError(`Error: No 'attributeForDistinct' is configured for the index '${firstIndex}'.`);
+      }
+    } catch (err) {
+      setError(`An error occurred: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -46,44 +77,45 @@ const BulkUpdateByDistinct = () => {
   };
 
   const handleUpdate = async () => {
-    // AJOUTÉ : Vérification cruciale au début de l'action
     if (!appId || !apiKey) {
       setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
       return;
     }
 
-    setError('');
-    setLog('');
-    setIndexResults([]);
-
-    if (!indexNames.trim() || !distinctAttr || !fileContent || fileContent[0].length < 2) {
-      setError('Please provide at least one Index Name, the Distinct Attribute, and a valid CSV file.');
+    if (!distinctAttr || !indexNames.trim() || !fileContent) {
+      setError('Please ensure the distinct attribute has been fetched and a file is uploaded.');
       return;
     }
-
+    
     setIsLoading(true);
-    setLog('Updating objects...');
+    setError('');
+    let fullLog = 'Starting update process...\n';
+    setLog(fullLog);
 
     try {
-      const client = algoliasearch(appId, apiKey); // Utilise l'appId global
-      const indexes = indexNames.split('\n').map(name => name.trim()).filter(name => name);
+      const client = algoliasearch(appId, apiKey);
+      const indexes = indexNames.split(/[\s,;|\n]+/).filter(Boolean);
       const results = [];
 
       for (const indexName of indexes) {
+        fullLog += `\nProcessing index: ${indexName}...\n`;
+        setLog(fullLog);
         try {
           const index = client.initIndex(indexName);
+
           for (let i = 1; i < fileContent.length; i++) {
             const row = fileContent[i];
             const [distinctValue, ...rest] = row;
             const headers = fileContent[0];
             const updateFields = {};
+            
             for (let j = 1; j < headers.length; j++) {
-                const valueToParse = rest[j - 1] || 'null';
-                try {
-                    updateFields[headers[j]] = JSON.parse(valueToParse);
-                } catch (e) {
-                    updateFields[headers[j]] = valueToParse;
-                }
+              const valueToParse = rest[j - 1] || 'null';
+              try {
+                  updateFields[headers[j]] = JSON.parse(valueToParse);
+              } catch (e) {
+                  updateFields[headers[j]] = valueToParse;
+              }
             }
 
             const matchingObjectIDs = [];
@@ -97,18 +129,22 @@ const BulkUpdateByDistinct = () => {
             });
 
             if (matchingObjectIDs.length > 0) {
-                const updates = matchingObjectIDs.map(objectID => ({ objectID, ...updateFields }));
-                await index.partialUpdateObjects(updates);
+              const updates = matchingObjectIDs.map(objectID => ({ objectID, ...updateFields }));
+              await index.partialUpdateObjects(updates);
             }
           }
           results.push({ indexName, status: 'success' });
+          fullLog += `  ✅ Success: Index '${indexName}' updated.\n`;
+          setLog(fullLog);
         } catch (err) {
           results.push({ indexName, status: 'error', message: err.message });
+          fullLog += `  ❌ Error processing index '${indexName}': ${err.message}\n`;
+          setLog(fullLog);
         }
       }
 
       setIndexResults(results);
-      setLog('All updates completed.');
+      setLog(fullLog + '\nAll operations completed.');
     } catch (err) {
       setError('Unexpected error: ' + err.message);
     } finally {
@@ -117,12 +153,12 @@ const BulkUpdateByDistinct = () => {
   };
 
   const handleDownloadExample = () => {
-    const exampleCsv = 'distinctAttribute;productName;productColor;price\n553770WHFBU9042;"Amazing Shoes";"Red";120.50';
+    const exampleCsv = 'distinct_value;productName;price\nGROUP123;"New Shoes";129.99';
     const blob = new Blob([exampleCsv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'example_bulk_update.csv');
+    link.setAttribute('download', 'example_update_by_distinct.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -136,22 +172,25 @@ const BulkUpdateByDistinct = () => {
       <InfoBlock title="About this feature">
         This module allows you to update all records that share the same <code>distinct</code> value by importing a CSV file.
         <br /><br />
-        📄 The CSV should contain one line per distinct value, with the first column matching your distinct attribute, and the other columns for fields to update. The first row must be the headers.
+        👉 Enter the <strong>Index Name(s)</strong> and click "Fetch Distinct Attribute". The tool will automatically detect the attribute used for distinct grouping from your index configuration.
         <br /><br />
-        🗁 The system will fetch all matching <code>objectIDs</code> and update them using <code>partialUpdateObjects</code>.
+        📄 The CSV should contain one line per distinct value, with the first column matching the detected distinct attribute.
       </InfoBlock>
-
-      {/* MODIFIÉ : Le bloc de configuration est simplifié */}
+      
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* SUPPRIMÉ : Le champ de saisie pour l'App ID a été retiré */}
           <div>
             <label>Index Name(s):</label>
             <textarea value={indexNames} onChange={(e) => setIndexNames(e.target.value)} rows={4} placeholder="One index name per line" style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px', resize: 'vertical' }} />
           </div>
+          
           <div>
-            <label>Distinct Attribute:</label>
-            <input type="text" value={distinctAttr} onChange={(e) => setDistinctAttr(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
+            <StyledButton onClick={fetchDistinctAttribute} label="Fetch Distinct Attribute" icon="🔄" />
+            {distinctAttr && (
+              <p style={{ marginLeft: '15px', fontStyle: 'italic', display: 'inline-block' }}>
+                Detected Attribute: <strong>{distinctAttr}</strong>
+              </p>
+            )}
           </div>
         </div>
       </SectionBlock>
@@ -190,7 +229,13 @@ const BulkUpdateByDistinct = () => {
 
       {fileContent && (
         <SectionBlock title="Actions">
-          <StyledButton label="✅ Apply Updates" onClick={handleUpdate} color="#28a745" />
+          <StyledButton 
+            label="✅ Apply Updates" 
+            onClick={handleUpdate} 
+            color="#28a745"
+            disabled={!distinctAttr}
+            title={!distinctAttr ? "Please fetch the distinct attribute first" : "Apply updates to your indexes"}
+          />
         </SectionBlock>
       )}
 
@@ -207,7 +252,7 @@ const BulkUpdateByDistinct = () => {
       )}
 
       {error && <div style={{ color: 'red', marginTop: '20px' }}>{error}</div>}
-      {log && <div style={{ color: 'green', marginTop: '20px' }}>{log}</div>}
+      {log && <div style={{ color: 'green', marginTop: '20px', whiteSpace: 'pre-line' }}>{log}</div>}
     </div>
   );
 };

@@ -129,7 +129,7 @@ const BulkUpdateByDistinct = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <FullPageLoader isLoading={isLoading} />
       <h1>Bulk Update by Distinct Attribute</h1>
 

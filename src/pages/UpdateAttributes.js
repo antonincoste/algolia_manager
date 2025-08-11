@@ -133,7 +133,7 @@ const UpdateAttributes = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <FullPageLoader isLoading={isUpdating} />
       <h1>Update Product Attributes</h1>
 

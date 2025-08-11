@@ -1,14 +1,16 @@
-// src/pages/BulkUpdateByDistinct.js
 import React, { useRef, useState } from 'react';
-import { getApiKey } from '../services/sessionService';
+// MODIFIÉ : On importe aussi getAppId
+import { getApiKey, getAppId } from '../services/sessionService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
-import FullPageLoader from '../components/FullPageLoader'; // NOUVEAU : Importer le loader
+import FullPageLoader from '../components/FullPageLoader';
 
 const BulkUpdateByDistinct = () => {
-  const [appId, setAppId] = useState('');
+  // SUPPRIMÉ : L'état local pour l'appId a été enlevé
+  // const [appId, setAppId] = useState('');
+  
   const [indexNames, setIndexNames] = useState('');
   const [distinctAttr, setDistinctAttr] = useState('');
   const [fileContent, setFileContent] = useState(null);
@@ -16,8 +18,11 @@ const BulkUpdateByDistinct = () => {
   const [error, setError] = useState('');
   const [previewRows, setPreviewRows] = useState([]);
   const [indexResults, setIndexResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // NOUVEAU : État pour le loader
+  const [isLoading, setIsLoading] = useState(false);
+
+  // AJOUTÉ : On récupère l'App ID et la clé API depuis le service
   const apiKey = getApiKey();
+  const appId = getAppId();
 
   const fileInputRef = useRef();
 
@@ -40,22 +45,27 @@ const BulkUpdateByDistinct = () => {
     reader.readAsText(file);
   };
 
-  // MODIFIÉ : La fonction handleUpdate est maintenant 'async' et gère l'état de chargement
   const handleUpdate = async () => {
+    // AJOUTÉ : Vérification cruciale au début de l'action
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
+
     setError('');
     setLog('');
     setIndexResults([]);
 
-    if (!appId || !indexNames.trim() || !distinctAttr || !fileContent || fileContent[0].length < 2) {
-      setError('Please provide App ID, at least one Index Name, the Distinct Attribute, and a valid CSV file with at least two columns.');
+    if (!indexNames.trim() || !distinctAttr || !fileContent || fileContent[0].length < 2) {
+      setError('Please provide at least one Index Name, the Distinct Attribute, and a valid CSV file.');
       return;
     }
 
-    setIsLoading(true); // NOUVEAU : Démarrer le loader
+    setIsLoading(true);
     setLog('Updating objects...');
 
     try {
-      const client = algoliasearch(appId, apiKey);
+      const client = algoliasearch(appId, apiKey); // Utilise l'appId global
       const indexes = indexNames.split('\n').map(name => name.trim()).filter(name => name);
       const results = [];
 
@@ -102,7 +112,7 @@ const BulkUpdateByDistinct = () => {
     } catch (err) {
       setError('Unexpected error: ' + err.message);
     } finally {
-      setIsLoading(false); // NOUVEAU : Arrêter le loader dans tous les cas (succès ou erreur)
+      setIsLoading(false);
     }
   };
 
@@ -120,29 +130,21 @@ const BulkUpdateByDistinct = () => {
 
   return (
     <div style={{ marginLeft: '260px', padding: '20px' }}>
-      {/* NOUVEAU : Afficher le loader en fonction de son état */}
       <FullPageLoader isLoading={isLoading} />
-
       <h1>Bulk Update by Distinct Attribute</h1>
-
-      {/* ... le reste de votre JSX ne change pas ... */}
 
       <InfoBlock title="About this feature">
         This module allows you to update all records that share the same <code>distinct</code> value by importing a CSV file.
-        <br /><br />
-        👉 Enter the <strong>App ID</strong>, <strong>Index Name(s)</strong> and <strong>Distinct Attribute</strong> (used in your index).
         <br /><br />
         📄 The CSV should contain one line per distinct value, with the first column matching your distinct attribute, and the other columns for fields to update. The first row must be the headers.
         <br /><br />
         🗁 The system will fetch all matching <code>objectIDs</code> and update them using <code>partialUpdateObjects</code>.
       </InfoBlock>
 
+      {/* MODIFIÉ : Le bloc de configuration est simplifié */}
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label>App ID:</label>
-            <input type="text" value={appId} onChange={(e) => setAppId(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
-          </div>
+          {/* SUPPRIMÉ : Le champ de saisie pour l'App ID a été retiré */}
           <div>
             <label>Index Name(s):</label>
             <textarea value={indexNames} onChange={(e) => setIndexNames(e.target.value)} rows={4} placeholder="One index name per line" style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px', resize: 'vertical' }} />

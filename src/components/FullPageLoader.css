@@ -1,0 +1,28 @@
+.loader-overlay {
+  position: fixed; /* Reste en place même si on scrolle */
+  top: 0;
+  left: 0;
+  width: 100vw; /* 100% de la largeur de la vue */
+  height: 100vh; /* 100% de la hauteur de la vue */
+  background-color: rgba(0, 0, 0, 0.7); /* Fond noir semi-transparent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* S'assure qu'il est au-dessus de tout le reste */
+  transition: opacity 0.3s;
+}
+
+.loader-spinner {
+  border: 8px solid #f3f3f3; /* Gris clair */
+  border-top: 8px solid #3498db; /* Bleu */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

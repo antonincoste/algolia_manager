@@ -9,7 +9,7 @@ const FullPageLoader = ({ isLoading }) => {
   return (
     <div className="loader-overlay">
       <div className="loader-spinner"></div>
-      <p style={{ color: 'white', marginTop: '20px', fontSize: '1.2em' }}>Processing updates, do not close or refresh the page...</p>
+      <p style={{ color: 'white', marginTop: '20px', fontSize: '1.2em' }}>Processing, do not close or refresh the page...</p>
     </div>
   );
 };

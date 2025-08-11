@@ -1,77 +1,88 @@
+// src/components/ApiKeyPrompt.js
 import React, { useState } from 'react';
-import { setApiKey } from '../services/sessionService';
-import styled from 'styled-components';
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
+const promptStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10000,
+};
 
-const Modal = styled.div`
-  background: white;
-  padding: 30px 40px;
-  border-radius: 12px;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-`;
+const contentStyle = {
+  backgroundColor: 'white',
+  padding: '30px',
+  borderRadius: '8px',
+  width: '400px',
+  boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+};
 
-const Title = styled.h2`
-  margin-bottom: 20px;
-  font-size: 20px;
-`;
+const inputStyle = {
+  width: '100%',
+  padding: '10px',
+  marginBottom: '20px',
+  borderRadius: '4px',
+  border: '1px solid #ccc',
+  boxSizing: 'border-box'
+};
 
-const Input = styled.input`
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-  margin-bottom: 20px;
-`;
+const buttonStyle = {
+  padding: '10px 20px',
+  borderRadius: '4px',
+  backgroundColor: '#28a745',
+  color: '#fff',
+  border: 'none',
+  cursor: 'pointer',
+};
 
-const Button = styled.button`
-  padding: 10px 20px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background-color: #007bff;
-  color: white;
-  margin-top: 10px;
+// MODIFIÉ : Le nom de la prop `onApiKeySet` est changé en `onSave` pour plus de clarté
+const ApiKeyPrompt = ({ onSave, onCancel }) => {
+  const [key, setKey] = useState('');
+  const [id, setId] = useState(''); // NOUVEAU : état pour l'App ID
 
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
-const ApiKeyPrompt = ({ onApiKeySet }) => {
-  const [apiKey, setApiKeyInput] = useState('');
-
-  const handleSave = () => {
-    setApiKey(apiKey);
-    onApiKeySet(apiKey);
+  const handleSaveClick = () => {
+    if (key && id) {
+      onSave({ newKey: key, newId: id }); // NOUVEAU : on envoie un objet avec les deux valeurs
+    }
   };
 
   return (
-    <Overlay>
-      <Modal>
-        <Title>Enter your Algolia API Key</Title>
-        <Input
-          type="text"
-          value={apiKey}
-          onChange={(e) => setApiKeyInput(e.target.value)}
-          placeholder="Your API Key"
-        />
-        <Button onClick={handleSave}>Save</Button>
-      </Modal>
-    </Overlay>
+    <div style={promptStyle} onClick={onCancel}>
+      <div style={contentStyle} onClick={(e) => e.stopPropagation()}>
+        <h2>Add Credentials</h2>
+        
+        {/* NOUVEAU : Champ pour l'App ID */}
+        <div>
+          <label>App ID:</label>
+          <input
+            type="text"
+            value={id}
+            onChange={(e) => setId(e.target.value)}
+            style={inputStyle}
+            placeholder="Your Algolia App ID"
+          />
+        </div>
+
+        <div>
+          <label>Admin API Key:</label>
+          <input
+            type="password"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            style={inputStyle}
+            placeholder="Your Algolia Admin API Key"
+          />
+        </div>
+        
+        <button onClick={handleSaveClick} style={buttonStyle}>Save</button>
+        <button onClick={onCancel} style={{...buttonStyle, backgroundColor: '#6c757d', marginLeft: '10px'}}>Cancel</button>
+      </div>
+    </div>
   );
 };
 

@@ -1,15 +1,17 @@
-// src/pages/UpdateAttributes.js
 import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
-import { getApiKey } from '../services/sessionService';
+// MODIFIÉ : On importe aussi getAppId
+import { getApiKey, getAppId } from '../services/sessionService';
 import styled from 'styled-components';
 import FullPageLoader from '../components/FullPageLoader';
 
 const UpdateAttributes = () => {
-  const [appId, setAppId] = useState('');
+  // SUPPRIMÉ : L'état local pour l'appId a été enlevé
+  // const [appId, setAppId] = useState(''); 
+  
   const [indexNames, setIndexNames] = useState('');
   const [parsing, setParsing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -17,7 +19,10 @@ const UpdateAttributes = () => {
   const [error, setError] = useState('');
   const [parsedData, setParsedData] = useState(null);
 
+  // AJOUTÉ : On récupère l'App ID et la clé API depuis le service
   const apiKey = getApiKey();
+  const appId = getAppId(); 
+  
   const fileInputRef = useRef(null);
 
   const handleCsvUpload = (e) => {
@@ -46,8 +51,8 @@ const UpdateAttributes = () => {
           if (!data.every(row => row.objectID)) {
             throw new Error('All rows must include an objectID column.');
           }
-          const normalizedData = data.map(row => {
-            return Object.fromEntries(
+          const normalizedData = data.map(row => (
+            Object.fromEntries(
               Object.entries(row).map(([key, value]) => {
                 if (value === null || value === undefined) return [key, null];
                 const trimmedValue = String(value).trim();
@@ -60,10 +65,10 @@ const UpdateAttributes = () => {
                 if (!isNaN(Number(trimmedValue)) && trimmedValue !== '') return [key, Number(trimmedValue)];
                 return [key, value];
               })
-            );
-          });
+            )
+          ));
           setParsedData(normalizedData);
-          setLog(`${normalizedData.length} objects found in CSV file.`);
+          setLog(`${normalizedData.length} rows ready for preview.`);
         } catch (err) {
           setError(err.message);
         } finally {
@@ -80,14 +85,21 @@ const UpdateAttributes = () => {
   };
 
   const handleConfirmImport = async () => {
+    // AJOUTÉ : Vérification cruciale au début de l'action
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
+
     if (!parsedData) return;
     setIsUpdating(true);
     setError('');
     setLog('Sending updates to Algolia...');
 
     try {
-      const client = algoliasearch(appId, apiKey);
+      const client = algoliasearch(appId, apiKey); // Utilise l'appId global
       const indexes = indexNames.split('\n').map(name => name.trim()).filter(Boolean);
+
       let totalUpdated = 0;
       for (const name of indexes) {
         const index = client.initIndex(name);
@@ -99,7 +111,7 @@ const UpdateAttributes = () => {
         totalUpdated = partialObjects.length;
         setLog(prev => `${prev}\n✅ Index '${name}' processed.`);
       }
-      setLog(`Update complete.\n${totalUpdated} objects processed in ${indexes.length} index(es).`);
+      setLog(`Update complete.\n${totalUpdated} objects processed for ${indexes.length} index(es).`);
       setParsedData(null);
     } catch (err) {
       setError(err.message);
@@ -123,10 +135,8 @@ const UpdateAttributes = () => {
   return (
     <div style={{ marginLeft: '260px', padding: '20px' }}>
       <FullPageLoader isLoading={isUpdating} />
-
       <h1>Update Product Attributes</h1>
 
-      {/* CONTENU RESTAURÉ */}
       <InfoBlock title="How this works">
         Upload a CSV file to update attributes for products in your Algolia index.
         The file must contain an <code>objectID</code> column and one or more columns with values to update.
@@ -135,13 +145,10 @@ const UpdateAttributes = () => {
         <br/><br/>You can also specify multiple indexes: each one will receive the same updates.
       </InfoBlock>
 
-      {/* CONTENU RESTAURÉ */}
+      {/* MODIFIÉ : Le bloc de configuration est simplifié */}
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label>App ID:</label>
-            <input type="text" value={appId} onChange={(e) => setAppId(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
-          </div>
+          {/* SUPPRIMÉ : Le champ de saisie pour l'App ID a été retiré */}
           <div>
             <label>Index Names (one per line):</label>
             <textarea value={indexNames} onChange={(e) => setIndexNames(e.target.value)} rows={5} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />

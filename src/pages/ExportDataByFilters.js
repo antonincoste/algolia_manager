@@ -184,7 +184,7 @@ const ExportData = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <FullPageLoader isLoading={isLoading} />
       <h1>Export Products by filters</h1>
       <InfoBlock title="About this feature">

@@ -4,7 +4,7 @@ import InfoBlock from '../components/InfoBlock';
 
 const Home = () => {
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <h1>Welcome to the Algolia Management Tool</h1>
 
       <InfoBlock title="About this application">

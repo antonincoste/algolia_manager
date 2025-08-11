@@ -94,7 +94,7 @@ const ExportByID = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <FullPageLoader isLoading={isLoading} />
       <h1>Export Products by ID</h1>
 

@@ -168,8 +168,8 @@ const Sidebar = () => {
       <div>
         <ProfileSection>
           <ProfileImage>AC</ProfileImage>
-          <ProfileName>Antoine C.</ProfileName>
-          <ProfileEmail>antoine.c@example.com</ProfileEmail>
+          <ProfileName>Antonin C.</ProfileName>
+          <ProfileEmail>antonin@internetcompany.fr</ProfileEmail>
         </ProfileSection>
 
         <Menu>
@@ -186,10 +186,9 @@ const Sidebar = () => {
               <AccordionIcon isOpen={openSection === 'devMode'}>▼</AccordionIcon>
             </MenuGroupTitle>
             <SubMenu isOpen={openSection === 'devMode'}>
-                        {/* AJOUTÉ : Le lien vers la nouvelle fonctionnalité */}
                         <MenuItem>
                             <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
-                                <Icon>🧬</Icon>
+                                <Icon>🔄</Icon>
                                 Copy Data
                             </MenuLink>
                         </MenuItem>

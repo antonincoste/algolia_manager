@@ -1,22 +1,37 @@
-// src/pages/ExportData.js
 import React, { useState } from 'react';
-import { getApiKey } from '../services/sessionService';
+// MODIFIÉ : On importe aussi getAppId
+import { getApiKey, getAppId } from '../services/sessionService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
+// AJOUTÉ : Import du loader pour une meilleure UX
+import FullPageLoader from '../components/FullPageLoader';
 
 const ExportData = () => {
-  const [appId, setAppId] = useState('');
+  // SUPPRIMÉ : L'état local pour l'appId a été enlevé
+  // const [appId, setAppId] = useState('');
+  
   const [indexName, setIndexName] = useState('');
   const [productCodes, setProductCodes] = useState('');
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
   const [distinctAttribute, setDistinctAttribute] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // AJOUTÉ : État pour le loader
+
+  // AJOUTÉ : On récupère l'App ID et la clé API depuis le service
   const apiKey = getApiKey();
+  const appId = getAppId();
 
   const synchronizeDataModel = async () => {
+    // AJOUTÉ : Vérification des identifiants
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
     setLog('Fetching index settings...');
+    setError('');
+
     try {
       const client = algoliasearch(appId, apiKey);
       const index = client.initIndex(indexName);
@@ -34,7 +49,15 @@ const ExportData = () => {
   };
 
   const handleGenerateFile = async () => {
+    // AJOUTÉ : Vérification des identifiants
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
     setLog('Generating CSV file...');
+    setError('');
+    setIsLoading(true); // AJOUTÉ : Démarrer le loader
+
     try {
       const client = algoliasearch(appId, apiKey);
       const index = client.initIndex(indexName);
@@ -51,13 +74,32 @@ const ExportData = () => {
           allObjects.push(...batch);
         },
       });
+      
+      if (allObjects.length === 0) {
+        throw new Error("No objects found in the index. The index might be empty or does not exist.");
+      }
 
-      let filteredObjects = allObjects.filter(obj => codes.includes(obj[distinctAttribute]));
+      let filteredObjects = allObjects;
+      // Ne filtrer que si des codes sont fournis et qu'un attribut distinct existe
+      if (codes.length > 0 && distinctAttribute) {
+        filteredObjects = allObjects.filter(obj => codes.includes(obj[distinctAttribute]));
+      }
+      
+      if (filteredObjects.length === 0) {
+        setLog('No objects matched the provided codes. An empty CSV file will be generated.');
+      }
 
-      const attributes = Object.keys(filteredObjects[0] || {});
+      const attributes = Object.keys(allObjects[0]); // Utiliser tous les attributs du premier objet comme référence
       const csvRows = [attributes.join(';')];
+      
       filteredObjects.forEach(obj => {
-        const row = attributes.map(attr => JSON.stringify(obj[attr] || ''));
+        const row = attributes.map(attr => {
+          const value = obj[attr];
+          if (value === null || value === undefined) return '';
+          // Gérer les objets et les tableaux pour un export CSV propre
+          if (typeof value === 'object') return JSON.stringify(value);
+          return String(value);
+        });
         csvRows.push(row.join(';'));
       });
 
@@ -67,41 +109,38 @@ const ExportData = () => {
 
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `algolia_export_${Date.now()}.csv`);
+      link.setAttribute('download', `algolia_export_${indexName}_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      setLog('CSV file successfully generated.');
+      setLog(`${filteredObjects.length} records successfully exported.`);
     } catch (err) {
       setError('Error generating CSV file: ' + err.message);
+    } finally {
+      setIsLoading(false); // AJOUTÉ : Arrêter le loader
     }
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
+      <FullPageLoader isLoading={isLoading} />
       <h1>Export By Distinct Attribute</h1>
 
       <InfoBlock title="About this feature">
-        This tool allows you to export records from an Algolia index by using the <code>attributeForDistinct</code> setting configured on your index.
+        This tool allows you to export records from an Algolia index.
         <br /><br />
-        👉 After entering your <strong>App ID</strong> and <strong>Index Name</strong>, click on <strong>“Sync Data Model</strong> to automatically detect the distinct attribute used in your index configuration.
+        👉 Enter your <strong>Index Name</strong>, then click <strong>“Sync Data Model”</strong> to automatically detect if a distinct attribute is used.
         <br /><br />
-        ✅ Once the distinct attribute is retrieved, you can paste a list of product codes (one per line) corresponding to this attribute.
+        ✅ If a distinct attribute is found, you can filter the export by pasting a list of codes. If no codes are provided, the entire index will be exported.
         <br /><br />
-        📄 The export will include all matching records in CSV format using Algolia’s <code>browseObjects</code> method.
-        <ul>
-          <li>This method does not count towards your search operations quota</li>
-          <li>It retrieves the full objects, so you get all available attributes</li>
-        </ul>
+        📄 The export uses Algolia’s <code>browseObjects</code> method, which does not count towards your search operations quota and retrieves all attributes.
       </InfoBlock>
 
+      {/* MODIFIÉ : Le bloc de configuration est simplifié */}
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label>App ID:</label>
-            <input type="text" value={appId} onChange={(e) => setAppId(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
-          </div>
+          {/* SUPPRIMÉ : Le champ de saisie pour l'App ID a été retiré */}
           <div>
             <label>Index Name:</label>
             <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
@@ -112,16 +151,24 @@ const ExportData = () => {
         </div>
       </SectionBlock>
 
-      {distinctAttribute && (
+      {/* MODIFIÉ : La condition d'affichage est plus flexible */}
+      {(log.includes('Distinct attribute') || log.includes('No distinct attribute')) && (
         <SectionBlock title="Export Products">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <label>Paste Product Codes ({distinctAttribute}):</label>
+            {distinctAttribute ? (
+              <label>Paste Codes to Filter (based on: {distinctAttribute}). Leave empty to export all.</label>
+            ) : (
+              <label>No distinct attribute. The entire index will be exported.</label>
+            )}
+            
+            {/* Le textarea est toujours affiché pour permettre l'export filtré si l'attribut est connu */}
             <textarea
               rows={10}
               value={productCodes}
               onChange={(e) => setProductCodes(e.target.value)}
               placeholder="One code per line"
               style={{ width: '97%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+              disabled={!distinctAttribute} // Désactivé si aucun attribut distinct n'est trouvé
             />
             <StyledButton onClick={handleGenerateFile} label="Export CSV" icon="📁" color="#8fbc8f" />
           </div>

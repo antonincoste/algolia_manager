@@ -103,7 +103,7 @@ const OfflineProducts = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
       <h1>Passer les Produits en Offline</h1>
 
       <InfoBlock title="À propos de cette fonctionnalité">

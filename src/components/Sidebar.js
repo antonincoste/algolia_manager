@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';  // Import du hook useLocation
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import ApiKeyManager from './ApiKeyManager';
 
@@ -64,12 +64,50 @@ const Menu = styled.ul`
   list-style-type: none;
   padding: 0;
   margin: 0;
+  width: 100%;
+`;
+
+const MenuGroup = styled.li`
+  margin: 5px 0;
+`;
+
+const MenuGroupTitle = styled.div`
+  font-size: 14px;
+  font-weight: 700;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 15px;
+  margin-top: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #e9ecef;
+  }
+`;
+
+const AccordionIcon = styled.span`
+  transform: ${props => (props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
+  transition: transform 0.3s ease;
+`;
+
+const SubMenu = styled.ul`
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  max-height: ${props => (props.isOpen ? '500px' : '0')};
+  transition: max-height 0.4s ease-in-out;
 `;
 
 const MenuItem = styled.li`
-  margin: 15px 0;
   font-size: 16px;
   font-weight:400;
+  padding-left: 15px;
 `;
 
 const MenuLink = styled(Link)`
@@ -79,8 +117,7 @@ const MenuLink = styled(Link)`
   align-items: center;
   padding: 10px 15px;
   border-radius: 8px;
-  text-transform: uppercase;
-  font-size: 14px;
+  font-size: 15px;
   font-weight:400;
   
   &:hover {
@@ -91,27 +128,48 @@ const MenuLink = styled(Link)`
 
   &.active {
     background-color: lightblue;
-    color: #darkslategrey;;
+    color: #darkslategrey;
     box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
     font-weight:600;
   }
 `;
 
 const Icon = styled.span`
-  margin-right: 10px;
-  font-size: 20px;
+  margin-right: 12px;
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
 `;
 
+const sectionMapping = {
+  '/exportbyfilters': 'dataManagement',
+  '/exportbyids': 'dataManagement',
+  '/exportbydistinct': 'dataManagement',
+  '/update': 'dataManagement',
+  '/updatebydistinct': 'dataManagement',
+  '/offline': 'dataManagement',
+  '/copy': 'dataManagement',
+  // Ajoutez les futurs chemins ici (ex: '/dev-feature': 'devMode')
+};
+
 const Sidebar = () => {
-  const location = useLocation();  // Utilisation de useLocation pour obtenir l'URL active
+  const location = useLocation();
+
+  const [openSection, setOpenSection] = useState(() => {
+    return sectionMapping[location.pathname] || null;
+  });
+
+  const handleSectionClick = (sectionName) => {
+    setOpenSection(openSection === sectionName ? null : sectionName);
+  };
 
   return (
     <SidebarContainer>
       <div>
         <ProfileSection>
           <ProfileImage>AC</ProfileImage>
-          <ProfileName></ProfileName>
-          <ProfileEmail></ProfileEmail>
+          <ProfileName>Antonin C.</ProfileName>
+          <ProfileEmail>antonin@internetcompany.fr</ProfileEmail>
         </ProfileSection>
 
         <Menu>
@@ -121,46 +179,81 @@ const Sidebar = () => {
               Home
             </MenuLink>
           </MenuItem>
-          <MenuItem>
-            <MenuLink to="/exportbyfilters" className={location.pathname === '/exportbyfilters' ? 'active' : ''}>
-              <Icon>⤴️</Icon>
-              Export products by filters
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/exportbyids" className={location.pathname === '/exportbyids' ? 'active' : ''}>
-              <Icon>⤴️</Icon>
-              Export products by ids
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/exportbydistinct" className={location.pathname === '/exportbydistinct' ? 'active' : ''}>
-              <Icon>⤴️</Icon>
-              Export products by distinct attribute
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/update" className={location.pathname === '/update' ? 'active' : ''}>
-              <Icon>⤵️</Icon>
-              Update product attributes
-            </MenuLink>
-          </MenuItem>
-          <MenuItem>
-            <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
-              <Icon>⤵️</Icon>
-              Update by distinct
-            </MenuLink>
-          </MenuItem>
+
+          <MenuGroup>
+            <MenuGroupTitle onClick={() => handleSectionClick('devMode')}>
+              <span>Dev Mode</span>
+              <AccordionIcon isOpen={openSection === 'devMode'}>▼</AccordionIcon>
+            </MenuGroupTitle>
+            <SubMenu isOpen={openSection === 'devMode'}>
+                        <MenuItem>
+                            <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
+                                <Icon>🔄</Icon>
+                                Copy Data
+                            </MenuLink>
+                        </MenuItem>
+                    </SubMenu>
+          </MenuGroup>
+
+          <MenuGroup>
+            <MenuGroupTitle onClick={() => handleSectionClick('dataManagement')}>
+              <span>Data Management</span>
+              <AccordionIcon isOpen={openSection === 'dataManagement'}>▼</AccordionIcon>
+            </MenuGroupTitle>
+            <SubMenu isOpen={openSection === 'dataManagement'}>
+              <MenuItem>
+                <MenuLink to="/exportbyfilters" className={location.pathname === '/exportbyfilters' ? 'active' : ''}>
+                  <Icon>⤵️</Icon>
+                  Export by Filters
+                </MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/exportbyids" className={location.pathname === '/exportbyids' ? 'active' : ''}>
+                  <Icon>⤵️</Icon>
+                  Export by ObjectsID
+                </MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/exportbydistinct" className={location.pathname === '/exportbydistinct' ? 'active' : ''}>
+                  <Icon>⤵️</Icon>
+                  Export by Distinct attribute
+                </MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/update" className={location.pathname === '/update' ? 'active' : ''}>
+                  <Icon>⤴️</Icon>
+                  Update by ObjectsID
+                </MenuLink>
+              </MenuItem>
+              <MenuItem>
+                <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
+                  <Icon>⤴️</Icon>
+                  Update by Distinct attribute
+                </MenuLink>
+              </MenuItem>
+            </SubMenu>
+          </MenuGroup>
+
+          <MenuGroup>
+            <MenuGroupTitle onClick={() => handleSectionClick('monitoring')}>
+              <span>Monitoring</span>
+              <AccordionIcon isOpen={openSection === 'monitoring'}>▼</AccordionIcon>
+            </MenuGroupTitle>
+            <SubMenu isOpen={openSection === 'monitoring'}>
+              {/* Items pour Monitoring ici */}
+            </SubMenu>
+          </MenuGroup>
         </Menu>
       </div>
+
       <div style={{ marginTop: 'auto' }}>
-      <div style={{ fontSize: '12px', color: '#888', padding: '10px 0', textAlign: 'left' }}>
-        <p style={{ margin: 0 }}>
-          This tool is not affiliated with or endorsed by Algolia.
-        </p>
+        <div style={{ fontSize: '12px', color: '#888', padding: '10px 0', textAlign: 'left' }}>
+          <p style={{ margin: 0 }}>
+            This tool is not affiliated with or endorsed by Algolia.
+          </p>
+        </div>
+        <ApiKeyManager />
       </div>
-      <ApiKeyManager />
-    </div>
     </SidebarContainer>
   );
 };

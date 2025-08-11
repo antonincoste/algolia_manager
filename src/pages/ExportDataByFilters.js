@@ -1,13 +1,13 @@
 // src/pages/ExportData.js
 import React, { useState } from 'react';
-import { getApiKey } from '../services/sessionService';
+import { getApiKey, getAppId } from '../services/sessionService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
+import FullPageLoader from '../components/FullPageLoader';
 
 const ExportData = () => {
-  const [appId, setAppId] = useState('');
   const [indexName, setIndexName] = useState('');
   const [attributes, setAttributes] = useState(['objectID']);
   const [filters, setFilters] = useState([]);
@@ -17,7 +17,10 @@ const ExportData = () => {
   const [error, setError] = useState('');
   const [useDistinct, setUseDistinct] = useState(false);
   const [distinctAttribute, setDistinctAttribute] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   const apiKey = getApiKey();
+  const appId = getAppId();
 
   const clearStatus = () => {
     setError('');
@@ -51,8 +54,14 @@ const ExportData = () => {
   };
 
   const synchronizeDataModel = async () => {
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
     clearStatus();
     setLog('Synchronizing data model...');
+    setIsLoading(true);
+
     try {
       const client = algoliasearch(appId, apiKey);
       const index = client.initIndex(indexName);
@@ -73,30 +82,39 @@ const ExportData = () => {
       setAvailableAttributes(sortedAttributes);
     } catch (err) {
       setError('Error during synchronization: ' + err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const buildFilterString = () => {
     return filters
       .filter(f => f.attribute && f.value)
-      .map(f => `${f.attribute}:${f.value}`)
+      .map(f => `${f.attribute}:"${f.value}"`)
       .join(' AND ');
   };
 
   const handleGenerateFile = async () => {
+    if (!appId || !apiKey) {
+      setError('Error: App ID and API Key are missing. Please add them in the "Credentials" section.');
+      return;
+    }
     clearStatus();
     setLog('Generating CSV file...');
+    setIsLoading(true);
+
     try {
       const client = algoliasearch(appId, apiKey);
       const index = client.initIndex(indexName);
-
       const filteredAttributes = attributes.filter(attr => attr);
+      if (filteredAttributes.length === 0) {
+        throw new Error("Please select at least one column to export.");
+      }
       const allObjects = [];
       await index.browseObjects({
         query: '',
         filters: buildFilterString(),
         attributesToRetrieve: filteredAttributes,
-        distinct: useDistinct ? 1 : 0,
         batch: (batch) => {
           allObjects.push(...batch);
         },
@@ -115,27 +133,33 @@ const ExportData = () => {
 
       const csvRows = [filteredAttributes.join(';')];
       finalObjects.forEach(obj => {
-        const row = filteredAttributes.map(attr => JSON.stringify(obj[attr] || ''));
+        const row = filteredAttributes.map(attr => {
+            const value = obj[attr];
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return String(value);
+        });
         csvRows.push(row.join(';'));
       });
 
       const csvContent = csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `algolia_export_${Date.now()}.csv`);
+      link.setAttribute('download', `algolia_export_${indexName}_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
-      setLog('CSV file successfully generated.');
+      setLog(`${finalObjects.length} records successfully exported.`);
     } catch (err) {
       setError('Error generating CSV file: ' + err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // DÉFINITION DES STYLES POUR LE TOGGLE (RESTAURÉE)
   const toggleStyle = {
     appearance: 'none',
     width: '50px',
@@ -160,39 +184,34 @@ const ExportData = () => {
   };
 
   return (
-    <div style={{ marginLeft: '260px', padding: '20px' }}>
+    <div>
+      <FullPageLoader isLoading={isLoading} />
       <h1>Export Products by filters</h1>
-
       <InfoBlock title="About this feature">
         Export data from your Algolia index by selecting attributes and applying optional filters.
         This tool uses the <code>browseObjects</code> endpoint (not counted in your search quota).
         <br /><br />
         👉 Enable "Use Distinct" to only export unique products based on the index’s configured <code>attributeForDistinct</code>.
       </InfoBlock>
-
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label>App ID:</label>
-            <input type="text" value={appId} onChange={(e) => setAppId(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
-          </div>
           <div>
             <label>Index Name:</label>
             <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
           </div>
+          {/* Le JSX du toggle, qui est maintenant correctement stylisé */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <label>Use Distinct:</label>
             <div style={toggleStyle} onClick={() => setUseDistinct(!useDistinct)}>
               <div style={toggleCircleStyle}></div>
             </div>
-            {distinctAttribute && useDistinct && <span>({distinctAttribute})</span>}
+            {distinctAttribute && useDistinct && <span>(on: {distinctAttribute})</span>}
           </div>
           <div>
             <StyledButton onClick={synchronizeDataModel} label="Sync Data Model" icon="🔄" />
           </div>
         </div>
       </SectionBlock>
-
       {availableAttributes.length > 0 && (
         <>
           <SectionBlock title="Filters">
@@ -204,7 +223,6 @@ const ExportData = () => {
                 </div>
               ))}
             </div>
-
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '10px' }}>
               <select onChange={(e) => setNewFilter({ ...newFilter, attribute: e.target.value })} value={newFilter.attribute} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', width: '200px' }}>
                 <option value="">-- Attribute --</option>
@@ -214,7 +232,6 @@ const ExportData = () => {
               <StyledButton onClick={handleAddFilter} label="Add Filter" icon="➕" color="#1abc9c" />
             </div>
           </SectionBlock>
-
           <SectionBlock title="Columns to Export">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {attributes.map((attr, idx) => (
@@ -232,13 +249,11 @@ const ExportData = () => {
               ))}
             </div>
           </SectionBlock>
-
           <SectionBlock title="Actions">
-            <StyledButton onClick={handleGenerateFile} label="Generate CSV File" icon="📁" color="#8fbc8f" />
+            <StyledButton onClick={handleGenerateFile} label="Generate CSV File" icon="📁" color="#28a745" />
           </SectionBlock>
         </>
       )}
-
       {error && <div style={{ color: 'red', marginTop: '20px' }}>{error}</div>}
       {log && <div style={{ color: 'green', marginTop: '20px' }}>{log}</div>}
     </div>

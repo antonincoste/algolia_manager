@@ -72,7 +72,6 @@ const UpdateByAttribute = () => {
     setLog(fullLog);
     setIndexResults([]);
 
-    // CORRIGÉ : L'array `results` est déclaré ici
     const results = [];
 
     try {
@@ -252,5 +251,4 @@ const UpdateByAttribute = () => {
   );
 };
 
-// CORRIGÉ : La ligne d'export était manquante
 export default UpdateByAttribute;

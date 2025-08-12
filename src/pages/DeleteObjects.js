@@ -21,10 +21,6 @@ const DeleteObjects = () => {
   const globalAppId = getAppId();
   const globalApiKey = getApiKey();
 
-  // Remplacez votre fonction handleDelete par celle-ci
-
-  // Remplacez votre fonction handleDelete par celle-ci
-
   const handleDelete = async () => {
     if (!indexNames || !idsToDelete) {
       setError('Please provide at least one index and one ID to delete.');
@@ -53,7 +49,6 @@ const DeleteObjects = () => {
         let objectIDs_to_delete = [];
 
         if (deleteByDistinct) {
-          // Mode : Suppression par attribut distinct
           const settings = await index.getSettings();
           const distinctAttr = settings.attributeForDistinct;
 
@@ -68,7 +63,6 @@ const DeleteObjects = () => {
           
           let allFoundObjectIDs = [];
           
-          // MODIFIÉ : Remplacement de search par browseObjects
           for (const value of values) {
             const tempHits = [];
             await index.browseObjects({ 
@@ -78,14 +72,12 @@ const DeleteObjects = () => {
                 tempHits.push(...batch);
               }
             });
-            // On ajoute les objectIDs trouvés pour cette valeur à la liste globale
             allFoundObjectIDs.push(...tempHits.map(hit => hit.objectID));
           }
           
-          objectIDs_to_delete = [...new Set(allFoundObjectIDs)]; // Dédoublonnage final
+          objectIDs_to_delete = [...new Set(allFoundObjectIDs)];
 
         } else {
-          // Mode : Suppression par objectID (inchangé)
           objectIDs_to_delete = values;
         }
 
@@ -109,7 +101,6 @@ const DeleteObjects = () => {
     }
   };
 
-  // Styles pour le toggle
   const toggleStyle = {
     appearance: 'none',
     width: '50px',

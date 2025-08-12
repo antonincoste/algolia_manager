@@ -9,6 +9,7 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
+
 const formatDate = (date) => {
   return date.toISOString().split('T')[0];
 };

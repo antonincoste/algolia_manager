@@ -132,8 +132,7 @@ const Icon = styled.span`
 
 const sectionMapping = {
   '/exportbyfilters': 'dataManagement',
-  '/exportbyids': 'dataManagement',
-  '/exportbydistinct': 'dataManagement',
+  '/export-by-attribute': 'dataManagement',
   '/update': 'dataManagement',
   '/updatebydistinct': 'dataManagement',
   '/offline': 'dataManagement',
@@ -205,15 +204,9 @@ const Sidebar = () => {
                 </MenuLink>
               </MenuItem>
               <MenuItem>
-                <MenuLink to="/exportbyids" className={location.pathname === '/exportbyids' ? 'active' : ''}>
+                <MenuLink to="/export-by-attribute" className={location.pathname === '/export-by-attribute' ? 'active' : ''}>
                   <Icon>⤵️</Icon>
-                  Export by ObjectsID
-                </MenuLink>
-              </MenuItem>
-              <MenuItem>
-                <MenuLink to="/exportbydistinct" className={location.pathname === '/exportbydistinct' ? 'active' : ''}>
-                  <Icon>⤵️</Icon>
-                  Export by Distinct attribute
+                  Export by ObjectID or Distinct attribute
                 </MenuLink>
               </MenuItem>
               <MenuItem>

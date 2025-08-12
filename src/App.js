@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import ExportDataByFilters from './pages/ExportDataByFilters';
-import ExportDataByIds from './pages/ExportDataByIds';
-import ExportByDistinct from './pages/ExportByDistinct';
+import ExportByAttribute from './pages/ExportByAttribute';
 import OfflineProducts from './pages/OfflineProducts';
 import CopyRecommendations from './pages/CopyRecommendations';
 import GlobalStyle from './styles/GlobalStyle';
@@ -34,8 +33,7 @@ const App = () => {
         <main style={mainContentStyle}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/exportbyids" element={<ExportDataByIds />} />
-            <Route path="/exportbydistinct" element={<ExportByDistinct />} />
+            <Route path="/export-by-attribute" element={<ExportByAttribute />} />
             <Route path="/exportbyfilters" element={<ExportDataByFilters />} />
             <Route path="/update" element={<UpdateAttributes />} />
             <Route path="/updatebydistinct" element={<UpdateByDistinct />} />

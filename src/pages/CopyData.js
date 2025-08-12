@@ -1,4 +1,3 @@
-// src/pages/CopyData.js
 import React, { useState } from 'react';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
@@ -173,7 +172,6 @@ const CopyData = () => {
             <label htmlFor="diff-app-checkbox">Want to copy to a different application?</label>
           </div>
           
-          {/* RESTAURÉ : Le bloc complet pour les identifiants de destination */}
           {copyToDifferentApp && (
             <div style={{ border: '1px solid #ddd', padding: '0px 20px 20px 20px', borderRadius: '8px', backgroundColor: '#fdfdfd' }}>
               <h4>Destination Credentials</h4>

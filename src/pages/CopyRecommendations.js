@@ -6,12 +6,12 @@ import InfoBlock from '../components/InfoBlock';
 
 const CopyRecommendations = () => {
   const [appId, setAppId] = useState('');
-  const [sourceIndexName, setSourceIndexName] = useState(''); // Nouveau champ pour l'index source
+  const [sourceIndexName, setSourceIndexName] = useState('');
   const [sourceModelName, setSourceModelName] = useState('related-products'); // Modèle source
-  const [targetIndexesInput, setTargetIndexesInput] = useState(''); // Liste des indexes cibles
+  const [targetIndexesInput, setTargetIndexesInput] = useState('');
   const [mode, setMode] = useState('merge'); // Mode 'merge' ou 'replace'
   const [errorMessage, setErrorMessage] = useState('');
-  const [logOutput, setLogOutput] = useState(''); // Pour afficher le résultat du log
+  const [logOutput, setLogOutput] = useState('');
   const apiKey = getApiKey();
 
   const handleCopyRecommendations = async () => {
@@ -37,7 +37,7 @@ const CopyRecommendations = () => {
     try {
       const targetIndexes = targetIndexesInput.split('\n').map(line => line.trim()).filter(line => line);
 
-      const rules = await listRecommendRules(sourceIndexName, sourceModelName); // Utilisation du champ pour l'index source
+      const rules = await listRecommendRules(sourceIndexName, sourceModelName);
       if (!rules.length) {
         setErrorMessage(`No rules found for the source model: ${sourceModelName}`);
         return;
@@ -169,7 +169,7 @@ const CopyRecommendations = () => {
 
         <br /><br />
 
-        <label>Index Source :</label> {/* Nouveau champ pour l'index source */}
+        <label>Index Source :</label>
         <input
           type="text"
           value={sourceIndexName}

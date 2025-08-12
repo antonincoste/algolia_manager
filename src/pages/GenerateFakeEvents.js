@@ -1,4 +1,3 @@
-// src/pages/GenerateFakeEvents.js
 import React, { useState } from 'react';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
@@ -13,7 +12,6 @@ const GenerateFakeEvents = () => {
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
 
-  // Traduction de la logique du script Python en JavaScript
   const handleGenerate = () => {
     setError('');
     setLog('');
@@ -48,7 +46,6 @@ const GenerateFakeEvents = () => {
         const userToken = userTokens[Math.floor(Math.random() * userTokens.length)];
         const objectId = ids[Math.floor(Math.random() * ids.length)];
 
-        // Génère un timestamp aléatoire dans les 90 derniers jours
         const randomDaysAgo = Math.random() * 90;
         const eventDate = new Date(Date.now() - randomDaysAgo * 24 * 60 * 60 * 1000);
         const timestamp = eventDate.toISOString();
@@ -56,7 +53,6 @@ const GenerateFakeEvents = () => {
         generatedEvents.push([eventName, eventType, timestamp, objectId, userToken]);
       }
 
-      // Création du contenu CSV
       const headers = ["eventName", "eventType", "timestamp", "objectID", "userToken"];
       const csvRows = [
         headers.join(';'),
@@ -64,7 +60,6 @@ const GenerateFakeEvents = () => {
       ];
       const csvContent = csvRows.join('\n');
       
-      // Logique de téléchargement du fichier
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

@@ -1,4 +1,3 @@
-// src/pages/ExportByAttribute.js
 import React, { useState } from 'react';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
@@ -52,7 +51,6 @@ const ExportByAttribute = () => {
     if (hits.length === 0) {
       throw new Error('No matching records found to export.');
     }
-    // Crée une liste de toutes les clés possibles à partir de tous les objets
     const allKeys = [...new Set(hits.flatMap(item => Object.keys(item)))];
     
     const csvRows = [allKeys.join(';')];
@@ -105,7 +103,6 @@ const ExportByAttribute = () => {
           throw new Error("Please sync the distinct attribute before exporting.");
         }
         
-        // Optimisation : on fait un browse par valeur, c'est plus efficace que de tout charger
         let allFoundObjects = [];
         for (const value of values) {
           const tempHits = [];
@@ -129,7 +126,6 @@ const ExportByAttribute = () => {
     }
   };
   
-  // Styles pour le toggle
   const toggleContainerStyle = { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' };
   const toggleStyle = {
     appearance: 'none', width: '50px', height: '25px', backgroundColor: '#ccc',

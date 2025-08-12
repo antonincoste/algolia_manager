@@ -199,7 +199,6 @@ const ExportData = () => {
             <label>Index Name:</label>
             <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
           </div>
-          {/* Le JSX du toggle, qui est maintenant correctement stylisé */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <label>Use Distinct:</label>
             <div style={toggleStyle} onClick={() => setUseDistinct(!useDistinct)}>

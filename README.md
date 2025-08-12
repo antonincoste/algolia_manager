@@ -1,3 +1,20 @@
+# Algolia Manager
+Algolia Manager is a lightweight web application designed to make managing Algolia indexes faster and more intuitive — without writing a single line of code.
+
+It provides a set of tools to help teams:
+
+- Export data from Algolia based on filters, object IDs, or distinct attributes
+- Update existing records in bulk using a simple CSV import
+- Synchronize and explore the index data model in just a few clicks
+
+The goal is to simplify day-to-day index operations for developers, marketers, and product managers alike. Everything runs locally in your browser — your API keys and data never leave your environment.
+
+⚠️ This tool is not affiliated with or endorsed by Algolia. It’s an independent project created to streamline workflows for teams already using the Algolia search platform.
+
+You can access the online version here : https://algolia-manager.vercel.app/
+
+------
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -139,6 +139,7 @@ const sectionMapping = {
   '/generate-events': 'devMode',
   '/copy-data': 'devMode',
   '/delete-objects': 'dataManagement',
+  '/compare-configs': 'monitoring',
 };
 
 const Sidebar = () => {
@@ -229,7 +230,12 @@ const Sidebar = () => {
               <AccordionIcon isOpen={openSection === 'monitoring'}>▼</AccordionIcon>
             </MenuGroupTitle>
             <SubMenu isOpen={openSection === 'monitoring'}>
-              {/* Items pour Monitoring ici */}
+              <MenuItem>
+                  <MenuLink to="/compare-configs" className={location.pathname === '/compare-configs' ? 'active' : ''}>
+                      <Icon>📊</Icon>
+                        Compare Configs
+                      </MenuLink>
+                  </MenuItem>
             </SubMenu>
           </MenuGroup>
         </Menu>

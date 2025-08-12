@@ -140,6 +140,7 @@ const sectionMapping = {
   '/copy-data': 'devMode',
   '/delete-objects': 'dataManagement',
   '/compare-configs': 'monitoring',
+  '/no-result-searches': 'monitoring',
 };
 
 const Sidebar = () => {
@@ -236,6 +237,12 @@ const Sidebar = () => {
                         Compare Configs
                       </MenuLink>
                   </MenuItem>
+              <MenuItem>
+                  <MenuLink to="/no-result-searches" className={location.pathname === '/no-result-searches' ? 'active' : ''}>
+                      <Icon>🧐</Icon>
+                      No Result Searches
+                  </MenuLink>
+              </MenuItem>
             </SubMenu>
           </MenuGroup>
         </Menu>

@@ -7,8 +7,7 @@ import ExportByAttribute from './pages/ExportByAttribute';
 import OfflineProducts from './pages/OfflineProducts';
 import CopyRecommendations from './pages/CopyRecommendations';
 import GlobalStyle from './styles/GlobalStyle';
-import UpdateAttributes from './pages/UpdateAttributes';
-import UpdateByDistinct from './pages/UpdateByDistinct';
+import UpdateByAttribute from './pages/UpdateByAttributes';
 import CopyData from './pages/CopyData';
 import GenerateFakeEvents from './pages/GenerateFakeEvents';
 import DeleteObjects from './pages/DeleteObjects';
@@ -35,8 +34,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/export-by-attribute" element={<ExportByAttribute />} />
             <Route path="/exportbyfilters" element={<ExportDataByFilters />} />
-            <Route path="/update" element={<UpdateAttributes />} />
-            <Route path="/updatebydistinct" element={<UpdateByDistinct />} />
+            <Route path="/update-by-attribute" element={<UpdateByAttribute />} />
             <Route path="/offline" element={<OfflineProducts />} />
             <Route path="/copy" element={<CopyRecommendations />} />
             <Route path="/copy-data" element={<CopyData />} />

@@ -133,8 +133,7 @@ const Icon = styled.span`
 const sectionMapping = {
   '/exportbyfilters': 'dataManagement',
   '/export-by-attribute': 'dataManagement',
-  '/update': 'dataManagement',
-  '/updatebydistinct': 'dataManagement',
+  '/update-by-attribute': 'dataManagement',
   '/offline': 'dataManagement',
   '/copy': 'dataManagement',
   '/generate-events': 'devMode',
@@ -210,15 +209,9 @@ const Sidebar = () => {
                 </MenuLink>
               </MenuItem>
               <MenuItem>
-                <MenuLink to="/update" className={location.pathname === '/update' ? 'active' : ''}>
+                <MenuLink to="/update-by-attribute" className={location.pathname === '/update-by-attribute' ? 'active' : ''}>
                   <Icon>⤴️</Icon>
-                  Update by ObjectsID
-                </MenuLink>
-              </MenuItem>
-              <MenuItem>
-                <MenuLink to="/updatebydistinct" className={location.pathname === '/updatebydistinct' ? 'active' : ''}>
-                  <Icon>⤴️</Icon>
-                  Update by Distinct attribute
+                  Update by Attribute
                 </MenuLink>
               </MenuItem>
               <MenuItem>

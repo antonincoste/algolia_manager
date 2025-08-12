@@ -11,6 +11,7 @@ import UpdateByAttribute from './pages/UpdateByAttributes';
 import CopyData from './pages/CopyData';
 import GenerateFakeEvents from './pages/GenerateFakeEvents';
 import DeleteObjects from './pages/DeleteObjects';
+import CompareIndexesConfig from './pages/CompareIndexesConfig';
 
 
 // NOUVEAU : Style pour le conteneur du contenu principal
@@ -40,6 +41,7 @@ const App = () => {
             <Route path="/copy-data" element={<CopyData />} />
             <Route path="/generate-events" element={<GenerateFakeEvents />} />
             <Route path="/delete-objects" element={<DeleteObjects />} />
+            <Route path="/compare-configs" element={<CompareIndexesConfig />} />
           </Routes>
         </main>
       </div>

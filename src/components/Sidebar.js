@@ -131,13 +131,14 @@ const Icon = styled.span`
 `;
 
 const sectionMapping = {
+  '/generate-events': 'devMode',
+  '/copy-data': 'devMode',
+  '/query-decoder': 'devMode',
   '/exportbyfilters': 'dataManagement',
   '/export-by-attribute': 'dataManagement',
   '/update-by-attribute': 'dataManagement',
   '/offline': 'dataManagement',
   '/copy': 'dataManagement',
-  '/generate-events': 'devMode',
-  '/copy-data': 'devMode',
   '/delete-objects': 'dataManagement',
   '/compare-configs': 'monitoring',
   '/no-result-searches': 'monitoring',
@@ -189,6 +190,12 @@ const Sidebar = () => {
                              Generate fake events
                         </MenuLink>
                     </MenuItem>
+                    <MenuItem>
+                    <MenuLink to="/query-decoder" className={location.pathname === '/query-decoder' ? 'active' : ''}>
+                        <Icon>&lt;/&gt;</Icon>
+                        Query Decoder
+                    </MenuLink>
+                </MenuItem>
             </SubMenu>
           </MenuGroup>
 

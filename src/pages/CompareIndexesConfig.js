@@ -223,14 +223,23 @@ const CompareIndexesConfig = () => {
   const apiKey = getApiKey();
   const appId = getAppId();
 
+  // MODIFIÉ : Le useEffect qui récupère les index
   useEffect(() => {
     if (comparisonType && appId && apiKey) {
       const fetchIndexes = async () => {
         setLog('Fetching list of all indexes...');
         try {
           const client = algoliasearch(appId, apiKey);
-          const indices = await client.listIndices();
-          setAllIndexes(indices.items.map(item => item.name).sort());
+          const { items } = await client.listIndices();
+
+          // On ne garde que les index qui n'ont pas de `primary`, ce sont les index primaires.
+          const primaryIndexes = items.filter(item => !item.primary);
+          
+          // On nettoie les noms (trim) et on supprime les doublons (Set)
+          const cleanedNames = primaryIndexes.map(item => item.name.trim());
+          const uniqueNames = [...new Set(cleanedNames)];
+
+          setAllIndexes(uniqueNames.sort());
           setLog('Index list fetched. Please select indexes to compare.');
         } catch (err) {
           setError('Failed to fetch index list: ' + err.message);
@@ -244,10 +253,10 @@ const CompareIndexesConfig = () => {
 
   useEffect(() => {
     if (searchTerm) {
-      const filtered = allIndexes.filter(
+      const filtered = (allIndexes || []).filter(
         indexName =>
           indexName.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !selectedIndexes.includes(indexName)
+          !(selectedIndexes || []).includes(indexName)
       );
       setSuggestions(filtered);
     } else {
@@ -296,10 +305,9 @@ const CompareIndexesConfig = () => {
     fetchConfigs();
   }, [selectedIndexes, comparisonType, appId, apiKey]);
 
-  // MODIFIÉ : La fonction de sélection réinitialise maintenant l'état du toggle
   const selectComparison = (type) => {
     setConfigs(null); 
-    setShowOnlyDiff(true); // On réinitialise le toggle à son état par défaut
+    setShowOnlyDiff(true);
     setComparisonType(prevType => (prevType === type ? null : type));
   };
 
@@ -314,7 +322,7 @@ const CompareIndexesConfig = () => {
   };
 
   const handleRemoveIndex = (indexToRemove) => {
-    setSelectedIndexes(selectedIndexes.filter(index => index !== indexToRemove));
+    setSelectedIndexes((selectedIndexes || []).filter(index => index !== indexToRemove));
   };
 
   const handlePaste = (e) => {
@@ -324,8 +332,8 @@ const CompareIndexesConfig = () => {
 
     if (pastedIndexes.length > 1) {
       const currentSelectedIndexes = new Set(selectedIndexes);
-      const validNewIndexes = pastedIndexes.filter(name => 
-        allIndexes.includes(name) && !currentSelectedIndexes.has(name)
+      const validNewIndexes = (pastedIndexes || []).filter(name => 
+        (allIndexes || []).includes(name) && !currentSelectedIndexes.has(name)
       );
       
       let combined = [...selectedIndexes, ...validNewIndexes];

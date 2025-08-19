@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/pages/CopyData.js
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
 import SectionBlock from '../components/SectionBlock';
@@ -6,8 +8,38 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
-const inputStyle = { width: '75%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' };
+const inputStyle = { width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' };
+const textareaStyle = { ...inputStyle, resize: 'vertical' };
 const checkboxLabelStyle = { display: 'flex', alignItems: 'center', gap: '10px', margin: '15px 0' };
+
+// NOUVEAU : Styled components pour l'auto-complétion
+const AutocompleteContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const SuggestionsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+`;
+
+const SuggestionItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
 
 const CopyData = () => {
   const [sourceIndex, setSourceIndex] = useState('');
@@ -23,8 +55,46 @@ const CopyData = () => {
   const [newFilter, setNewFilter] = useState({ attribute: '', value: '' });
   const [availableAttributes, setAvailableAttributes] = useState([]);
 
+  // NOUVEAU : États pour l'auto-complétion
+  const [allIndexes, setAllIndexes] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   const globalAppId = getAppId();
   const globalApiKey = getApiKey();
+
+  // NOUVEAU : Effet pour récupérer la liste des index
+  useEffect(() => {
+    if (globalAppId && globalApiKey) {
+      const searchClient = algoliasearch(globalAppId, globalApiKey);
+      searchClient.listIndices().then(({ items }) => {
+        const primaryIndexes = items.filter(item => !item.primary);
+        const cleanedNames = primaryIndexes.map(item => item.name.trim());
+        const uniqueNames = [...new Set(cleanedNames)];
+        setAllIndexes(uniqueNames.sort());
+      }).catch(err => {
+        console.error("Failed to fetch index list for autocomplete:", err);
+      });
+    }
+  }, [globalAppId, globalApiKey]);
+
+  // NOUVEAU : Effet pour mettre à jour les suggestions
+  useEffect(() => {
+    if (sourceIndex && allIndexes.length > 0) {
+      const filtered = allIndexes.filter(name =>
+        name.toLowerCase().includes(sourceIndex.toLowerCase())
+      );
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  }, [sourceIndex, allIndexes]);
+
+  const handleSuggestionClick = (name) => {
+    setSourceIndex(name);
+    setSuggestions([]);
+    setIsInputFocused(false);
+  };
 
   const handleFetchAttributes = async () => {
     if (!sourceIndex) {
@@ -140,14 +210,33 @@ const CopyData = () => {
       </InfoBlock>
 
       <SectionBlock title="Configuration">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
             <label>Source Index:</label>
-            <input type="text" value={sourceIndex} onChange={(e) => setSourceIndex(e.target.value)} style={inputStyle} />
+            <AutocompleteContainer>
+              <input
+                type="text"
+                value={sourceIndex}
+                onChange={(e) => setSourceIndex(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
+                style={inputStyle}
+                placeholder="Search for a primary index..."
+              />
+              {isInputFocused && suggestions.length > 0 && (
+                <SuggestionsList>
+                  {suggestions.slice(0, 10).map(suggestion => (
+                    <SuggestionItem key={suggestion} onClick={() => handleSuggestionClick(suggestion)}>
+                      {suggestion}
+                    </SuggestionItem>
+                  ))}
+                </SuggestionsList>
+              )}
+            </AutocompleteContainer>
           </div>
           <div>
             <label>Target Index(es) (separated by space, comma, or new line):</label>
-            <textarea value={targetIndexes} onChange={(e) => setTargetIndexes(e.target.value)} rows={3} style={{...inputStyle, resize: 'vertical'}} />
+            <textarea value={targetIndexes} onChange={(e) => setTargetIndexes(e.target.value)} rows={3} style={textareaStyle} />
           </div>
 
           <div style={checkboxLabelStyle}>
@@ -173,7 +262,7 @@ const CopyData = () => {
           </div>
           
           {copyToDifferentApp && (
-            <div style={{ border: '1px solid #ddd', padding: '0px 20px 20px 20px', borderRadius: '8px', backgroundColor: '#fdfdfd' }}>
+            <div style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '8px', backgroundColor: '#fdfdfd' }}>
               <h4>Destination Credentials</h4>
               <div>
                 <label>Destination App ID:</label>

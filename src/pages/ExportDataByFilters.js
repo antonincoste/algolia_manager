@@ -1,5 +1,6 @@
-// src/pages/ExportData.js
-import React, { useState } from 'react';
+// src/pages/ExportDataByFilters.js
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { getApiKey, getAppId } from '../services/sessionService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
@@ -7,7 +8,36 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
-const ExportData = () => {
+const AutocompleteContainer = styled.div`
+  position: relative;
+  width: 75%;
+  margin-left: 15px;
+`;
+
+const SuggestionsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+`;
+
+const SuggestionItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
+const ExportDataByFilters = () => {
   const [indexName, setIndexName] = useState('');
   const [attributes, setAttributes] = useState(['objectID']);
   const [filters, setFilters] = useState([]);
@@ -18,9 +48,43 @@ const ExportData = () => {
   const [useDistinct, setUseDistinct] = useState(false);
   const [distinctAttribute, setDistinctAttribute] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [allIndexes, setAllIndexes] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const apiKey = getApiKey();
   const appId = getAppId();
+
+  useEffect(() => {
+    if (appId && apiKey) {
+      const searchClient = algoliasearch(appId, apiKey);
+      searchClient.listIndices().then(({ items }) => {
+        const primaryIndexes = items.filter(item => !item.primary);
+        const cleanedNames = primaryIndexes.map(item => item.name.trim());
+        const uniqueNames = [...new Set(cleanedNames)];
+        setAllIndexes(uniqueNames.sort());
+      }).catch(err => {
+        console.error("Failed to fetch index list for autocomplete:", err);
+      });
+    }
+  }, [appId, apiKey]);
+
+  useEffect(() => {
+    if (indexName && allIndexes.length > 0) {
+      const filtered = allIndexes.filter(name =>
+        name.toLowerCase().includes(indexName.toLowerCase())
+      );
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  }, [indexName, allIndexes]);
+
+  const handleSuggestionClick = (name) => {
+    setIndexName(name);
+    setSuggestions([]);
+    setIsInputFocused(false);
+  };
 
   const clearStatus = () => {
     setError('');
@@ -90,7 +154,7 @@ const ExportData = () => {
   const buildFilterString = () => {
     return filters
       .filter(f => f.attribute && f.value)
-      .map(f => `${f.attribute}:"${f.value}"`)
+      .map(f => `${f.attribute}:"${f.value.replace(/"/g, '\\"')}"`)
       .join(' AND ');
   };
 
@@ -159,7 +223,6 @@ const ExportData = () => {
     }
   };
 
-  // DÉFINITION DES STYLES POUR LE TOGGLE (RESTAURÉE)
   const toggleStyle = {
     appearance: 'none',
     width: '50px',
@@ -195,12 +258,31 @@ const ExportData = () => {
       </InfoBlock>
       <SectionBlock title="Index Settings">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label>Index Name:</label>
-            <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <label style={{minWidth: '120px'}}>Index Name:</label>
+            <AutocompleteContainer>
+              <input
+                type="text"
+                value={indexName}
+                onChange={(e) => setIndexName(e.target.value)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
+                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }}
+                placeholder="Search for an index..."
+              />
+              {isInputFocused && suggestions.length > 0 && (
+                <SuggestionsList>
+                  {suggestions.slice(0, 10).map(suggestion => (
+                    <SuggestionItem key={suggestion} onClick={() => handleSuggestionClick(suggestion)}>
+                      {suggestion}
+                    </SuggestionItem>
+                  ))}
+                </SuggestionsList>
+              )}
+            </AutocompleteContainer>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <label>Use Distinct:</label>
+            <label style={{minWidth: '120px'}}>Use Distinct:</label>
             <div style={toggleStyle} onClick={() => setUseDistinct(!useDistinct)}>
               <div style={toggleCircleStyle}></div>
             </div>
@@ -259,4 +341,4 @@ const ExportData = () => {
   );
 };
 
-export default ExportData;
+export default ExportDataByFilters;

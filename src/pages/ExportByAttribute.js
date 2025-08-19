@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/pages/ExportByAttribute.js
+import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
 import SectionBlock from '../components/SectionBlock';
@@ -6,20 +8,88 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
-const textareaStyle = { width: '97%', padding: '12px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc', resize: 'vertical' };
+const textareaStyle = { width: '100%', padding: '12px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd', resize: 'vertical' };
+const inputStyle = { width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' };
+
+// NOUVEAU : Styled components pour l'auto-complétion
+const AutocompleteContainer = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const SuggestionsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 5px 0 0 0;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+`;
+
+const SuggestionItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
 
 const ExportByAttribute = () => {
   const [indexName, setIndexName] = useState('');
   const [valuesToExport, setValuesToExport] = useState('');
-  const [exportMode, setExportMode] = useState('byID'); // 'byID' ou 'byDistinct'
+  const [exportMode, setExportMode] = useState('byID');
   const [distinctAttribute, setDistinctAttribute] = useState('');
   
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // NOUVEAU : États pour l'auto-complétion
+  const [allIndexes, setAllIndexes] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
   const apiKey = getApiKey();
   const appId = getAppId();
+
+  // NOUVEAU : Effet pour récupérer la liste des index
+  useEffect(() => {
+    if (appId && apiKey) {
+      const searchClient = algoliasearch(appId, apiKey);
+      searchClient.listIndices().then(({ items }) => {
+        const primaryIndexes = items.filter(item => !item.primary);
+        const cleanedNames = primaryIndexes.map(item => item.name.trim());
+        const uniqueNames = [...new Set(cleanedNames)];
+        setAllIndexes(uniqueNames.sort());
+      }).catch(err => {
+        console.error("Failed to fetch index list for autocomplete:", err);
+      });
+    }
+  }, [appId, apiKey]);
+
+  // NOUVEAU : Effet pour mettre à jour les suggestions
+  useEffect(() => {
+    if (indexName && allIndexes.length > 0) {
+      const filtered = allIndexes.filter(name =>
+        name.toLowerCase().includes(indexName.toLowerCase())
+      );
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  }, [indexName, allIndexes]);
+
+  const handleSuggestionClick = (name) => {
+    setIndexName(name);
+    setSuggestions([]);
+    setIsInputFocused(false);
+  };
 
   const handleSyncDistinctAttribute = async () => {
     if (!indexName) {
@@ -156,20 +226,41 @@ const ExportByAttribute = () => {
       </SectionBlock>
       
       <SectionBlock title="Index Settings">
-        <div>
-          <label>Index Name:</label>
-          <input type="text" value={indexName} onChange={(e) => setIndexName(e.target.value)} style={{ width: '75%', padding: '10px', marginTop: '10px', borderRadius: '4px', border: '1px solid #ddd', marginLeft: '15px' }} />
-        </div>
-        {exportMode === 'byDistinct' && (
-          <div style={{marginTop: '15px'}}>
-            <StyledButton onClick={handleSyncDistinctAttribute} label="Sync Distinct Attribute" icon="🔄" />
-            {distinctAttribute && (
-              <p style={{ marginLeft: '15px', fontStyle: 'italic', display: 'inline-block' }}>
-                Detected Attribute: <strong>{distinctAttribute}</strong>
-              </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div>
+              <label>Index Name:</label>
+              <AutocompleteContainer>
+                <input
+                  type="text"
+                  value={indexName}
+                  onChange={(e) => setIndexName(e.target.value)}
+                  onFocus={() => setIsInputFocused(true)}
+                  onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
+                  style={inputStyle}
+                  placeholder="Search for a primary index..."
+                />
+                {isInputFocused && suggestions.length > 0 && (
+                  <SuggestionsList>
+                    {suggestions.slice(0, 10).map(suggestion => (
+                      <SuggestionItem key={suggestion} onClick={() => handleSuggestionClick(suggestion)}>
+                        {suggestion}
+                      </SuggestionItem>
+                    ))}
+                  </SuggestionsList>
+                )}
+              </AutocompleteContainer>
+            </div>
+            {exportMode === 'byDistinct' && (
+              <div style={{marginTop: '15px'}}>
+                <StyledButton onClick={handleSyncDistinctAttribute} label="Sync Distinct Attribute" icon="🔄" />
+                {distinctAttribute && (
+                  <p style={{ fontStyle: 'italic', display: 'inline-block', marginLeft: '15px' }}>
+                    Detected Attribute: <strong>{distinctAttribute}</strong>
+                  </p>
+                )}
+              </div>
             )}
-          </div>
-        )}
+        </div>
       </SectionBlock>
 
       <SectionBlock title="Values to Export">

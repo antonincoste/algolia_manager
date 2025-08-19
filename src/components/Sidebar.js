@@ -134,6 +134,7 @@ const sectionMapping = {
   '/generate-events': 'devMode',
   '/copy-data': 'devMode',
   '/query-decoder': 'devMode',
+  '/clone-index': 'devMode',
   '/exportbyfilters': 'dataManagement',
   '/export-by-attribute': 'dataManagement',
   '/update-by-attribute': 'dataManagement',
@@ -178,6 +179,12 @@ const Sidebar = () => {
               <AccordionIcon isOpen={openSection === 'devMode'}>▼</AccordionIcon>
             </MenuGroupTitle>
             <SubMenu isOpen={openSection === 'devMode'}>
+                    <MenuItem>
+                      <MenuLink to="/clone-index" className={location.pathname === '/clone-index' ? 'active' : ''}>
+                          <Icon>🧬</Icon>
+                          Clone Index
+                      </MenuLink>
+                    </MenuItem> 
                     <MenuItem>
                         <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
                             <Icon>🔄</Icon>

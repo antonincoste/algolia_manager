@@ -9,7 +9,6 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
-
 const formatDate = (date) => {
   return date.toISOString().split('T')[0];
 };
@@ -74,7 +73,13 @@ const TopNoResultSearches = () => {
     if (appId && apiKey) {
       const searchClient = algoliasearch(appId, apiKey);
       searchClient.listIndices().then(({ items }) => {
-        setAllIndexes(items.map(item => item.name).sort());
+        const primaryIndexes = items.filter(item => !item.primary);
+
+        // AJOUT : Nettoyage et dédoublonnage des noms d'index
+        const cleanedNames = primaryIndexes.map(item => item.name.trim());
+        const uniqueNames = [...new Set(cleanedNames)];
+
+        setAllIndexes(uniqueNames.sort());
       }).catch(err => {
         console.error("Failed to fetch index list for autocomplete:", err);
       });
@@ -107,8 +112,6 @@ const TopNoResultSearches = () => {
     setSuggestions([]);
     setIsInputFocused(false);
   };
-
-  // Remplacez votre fonction handleFetchTopSearches par celle-ci
 
   const handleFetchTopSearches = async () => {
     const currentApiKey = getApiKey();
@@ -161,8 +164,9 @@ const TopNoResultSearches = () => {
       }
 
       if (success && response) {
-        // MODIFIÉ : On ajoute `|| []` comme sécurité au cas où `response.searches` est null ou undefined
-        const filteredSearches = (response.searches || []).filter(item => item.search.trim() !== '');
+        const filteredSearches = (response.searches || []).filter(item => 
+          item.search.trim() !== '' && item.nbHits === 0
+        );
         
         setTopSearches(filteredSearches);
         
@@ -208,7 +212,7 @@ const TopNoResultSearches = () => {
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setTimeout(() => setIsInputFocused(false), 200)}
                 style={inputStyle}
-                placeholder="Search for an index..."
+                placeholder="Search for a primary index..."
               />
               {isInputFocused && suggestions.length > 0 && (
                 <SuggestionsList>

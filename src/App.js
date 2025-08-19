@@ -13,6 +13,7 @@ import GenerateFakeEvents from './pages/GenerateFakeEvents';
 import DeleteObjects from './pages/DeleteObjects';
 import CompareIndexesConfig from './pages/CompareIndexesConfig';
 import TopNoResultSearches from './pages/TopNoResultSearches';
+import QueryDecoder from './pages/QueryDecoder';
 
 
 // NOUVEAU : Style pour le conteneur du contenu principal
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="/delete-objects" element={<DeleteObjects />} />
             <Route path="/compare-configs" element={<CompareIndexesConfig />} />
             <Route path="/no-result-searches" element={<TopNoResultSearches />} />
+            <Route path="/query-decoder" element={<QueryDecoder />} />
           </Routes>
         </main>
       </div>

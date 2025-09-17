@@ -15,6 +15,7 @@ import CompareIndexesConfig from './pages/CompareIndexesConfig';
 import TopNoResultSearches from './pages/TopNoResultSearches';
 import QueryDecoder from './pages/QueryDecoder';
 import CloneIndex from './pages/CloneIndex';
+import RecommendTester from './pages/RecommendTester';
 
 
 // NOUVEAU : Style pour le conteneur du contenu principal
@@ -48,6 +49,7 @@ const App = () => {
             <Route path="/no-result-searches" element={<TopNoResultSearches />} />
             <Route path="/query-decoder" element={<QueryDecoder />} />
             <Route path="/clone-index" element={<CloneIndex />} />
+            <Route path="/recommend-tester" element={<RecommendTester />} />
           </Routes>
         </main>
       </div>

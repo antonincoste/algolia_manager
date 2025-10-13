@@ -134,6 +134,7 @@ const sectionMapping = {
   '/generate-events': 'devMode',
   '/copy-data': 'devMode',
   '/query-decoder': 'devMode',
+  '/clone-index': 'devMode',
   '/exportbyfilters': 'dataManagement',
   '/export-by-attribute': 'dataManagement',
   '/update-by-attribute': 'dataManagement',
@@ -142,6 +143,7 @@ const sectionMapping = {
   '/delete-objects': 'dataManagement',
   '/compare-configs': 'monitoring',
   '/no-result-searches': 'monitoring',
+  '/recommend-tester': 'devMode',
 };
 
 const Sidebar = () => {
@@ -179,6 +181,12 @@ const Sidebar = () => {
             </MenuGroupTitle>
             <SubMenu isOpen={openSection === 'devMode'}>
                     <MenuItem>
+                      <MenuLink to="/clone-index" className={location.pathname === '/clone-index' ? 'active' : ''}>
+                          <Icon>🧬</Icon>
+                          Clone Index
+                      </MenuLink>
+                    </MenuItem> 
+                    <MenuItem>
                         <MenuLink to="/copy-data" className={location.pathname === '/copy-data' ? 'active' : ''}>
                             <Icon>🔄</Icon>
                             Copy Data
@@ -194,6 +202,12 @@ const Sidebar = () => {
                     <MenuLink to="/query-decoder" className={location.pathname === '/query-decoder' ? 'active' : ''}>
                         <Icon>&lt;/&gt;</Icon>
                         Query Decoder
+                    </MenuLink>
+                    </MenuItem>
+                    <MenuItem>
+                    <MenuLink to="/recommend-tester" className={location.pathname === '/recommend-tester' ? 'active' : ''}>
+                        <Icon>👍</Icon>
+                        Recommend Tester
                     </MenuLink>
                 </MenuItem>
             </SubMenu>
@@ -244,12 +258,6 @@ const Sidebar = () => {
                         Compare Configs
                       </MenuLink>
                   </MenuItem>
-              <MenuItem>
-                  <MenuLink to="/no-result-searches" className={location.pathname === '/no-result-searches' ? 'active' : ''}>
-                      <Icon>🧐</Icon>
-                      No Result Searches
-                  </MenuLink>
-              </MenuItem>
             </SubMenu>
           </MenuGroup>
         </Menu>

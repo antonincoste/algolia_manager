@@ -8,10 +8,9 @@ import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
 import FullPageLoader from '../components/FullPageLoader';
 
-const textareaStyle = { width: '100%', padding: '12px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd', resize: 'vertical' };
+const textareaStyle = { width: '100%', padding: '12px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd', resize: 'vertical', boxSizing: 'border-box' };
 const inputStyle = { width: '100%', padding: '10px', marginTop: '5px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' };
 
-// NOUVEAU : Styled components pour l'auto-complétion
 const AutocompleteContainer = styled.div`
   position: relative;
   width: 100%;
@@ -45,12 +44,11 @@ const ExportByAttribute = () => {
   const [valuesToExport, setValuesToExport] = useState('');
   const [exportMode, setExportMode] = useState('byID');
   const [distinctAttribute, setDistinctAttribute] = useState('');
-  
+  const [attributesToExport, setAttributesToExport] = useState(['objectID']);
+  const [availableAttributes, setAvailableAttributes] = useState([]);
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // NOUVEAU : États pour l'auto-complétion
   const [allIndexes, setAllIndexes] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -58,7 +56,6 @@ const ExportByAttribute = () => {
   const apiKey = getApiKey();
   const appId = getAppId();
 
-  // NOUVEAU : Effet pour récupérer la liste des index
   useEffect(() => {
     if (appId && apiKey) {
       const searchClient = algoliasearch(appId, apiKey);
@@ -73,7 +70,6 @@ const ExportByAttribute = () => {
     }
   }, [appId, apiKey]);
 
-  // NOUVEAU : Effet pour mettre à jour les suggestions
   useEffect(() => {
     if (indexName && allIndexes.length > 0) {
       const filtered = allIndexes.filter(name =>
@@ -91,25 +87,54 @@ const ExportByAttribute = () => {
     setIsInputFocused(false);
   };
 
-  const handleSyncDistinctAttribute = async () => {
+  const handleAddAttribute = () => {
+    setAttributesToExport([...attributesToExport, '']);
+  };
+
+  const handleRemoveAttribute = (idxToRemove) => {
+    setAttributesToExport(attributesToExport.filter((_, idx) => idx !== idxToRemove));
+  };
+
+  const handleAttributeChange = (value, idx) => {
+    const newAttributes = [...attributesToExport];
+    newAttributes[idx] = value;
+    setAttributesToExport(newAttributes);
+  };
+
+  const synchronizeIndexData = async () => {
     if (!indexName) {
       setError("Please provide an index name first.");
       return;
     }
     setIsLoading(true);
     setError('');
-    setLog(`Fetching settings for index '${indexName}'...`);
+    let syncLog = `Syncing data for index '${indexName}'...\n`;
+    setLog(syncLog);
+    setDistinctAttribute('');
+    setAvailableAttributes([]);
+
     try {
       const client = algoliasearch(appId, apiKey);
       const index = client.initIndex(indexName);
+      
       const settings = await index.getSettings();
       if (settings.attributeForDistinct) {
         setDistinctAttribute(settings.attributeForDistinct);
-        setLog(`✅ Distinct attribute found: ${settings.attributeForDistinct}`);
+        syncLog += `  ✅ Distinct attribute found: ${settings.attributeForDistinct}\n`;
       } else {
-        setDistinctAttribute('');
-        setError(`Error: No 'attributeForDistinct' is configured for the index '${indexName}'.`);
+        syncLog += `  ℹ️ No distinct attribute defined in index settings.\n`;
       }
+      
+      const response = await index.search('', { hitsPerPage: 10 });
+      const attributeSet = new Set();
+      response.hits.forEach(hit => {
+        Object.keys(hit).forEach(key => attributeSet.add(key));
+      });
+      const sortedAttributes = [...attributeSet].sort((a, b) => a.localeCompare(b));
+      setAvailableAttributes(sortedAttributes);
+      syncLog += `  ✅ Found ${sortedAttributes.length} available attributes.\n`;
+      setLog(syncLog);
+
     } catch (err) {
       setError('Error during synchronization: ' + err.message);
     } finally {
@@ -117,19 +142,46 @@ const ExportByAttribute = () => {
     }
   };
   
-  const generateCsv = (hits) => {
+  const generateCsv = (hits, selectedAttributes) => {
     if (hits.length === 0) {
       throw new Error('No matching records found to export.');
     }
-    const allKeys = [...new Set(hits.flatMap(item => Object.keys(item)))];
+
+    const escapeCsvValue = (value) => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  let stringValue;
+  
+  if (typeof value === 'object') {
+    stringValue = JSON.stringify(value);
+  } else {
+    stringValue = String(value);
+  }
+
+  // Remplacer les retours à la ligne et <br> par des espaces
+  stringValue = stringValue
+    .replace(/<br\s*\/?>/gi, ' ')  // <br>, <br/>, <br />
+    .replace(/[\r\n]+/g, ' ')       // \r, \n, \r\n
+    .replace(/\s+/g, ' ')           // Nettoyer les espaces multiples
+    .trim();
+
+  // Vérifier si on doit ajouter des guillemets (séparateur ou guillemets existants)
+  const needsQuotes = stringValue.includes(';') || stringValue.includes('"');
+
+  if (needsQuotes) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  
+  return stringValue;
+  };
+
+    const csvRows = [selectedAttributes.join(';')]; 
     
-    const csvRows = [allKeys.join(';')];
     hits.forEach(obj => {
-      const row = allKeys.map(attr => {
-        const value = obj[attr];
-        if (value === null || value === undefined) return '';
-        if (typeof value === 'object') return JSON.stringify(value);
-        return String(value);
+      const row = selectedAttributes.map(attr => {
+        return escapeCsvValue(obj[attr]);
       });
       csvRows.push(row.join(';'));
     });
@@ -154,6 +206,12 @@ const ExportByAttribute = () => {
       setError('Please provide an index name and a list of values to export.');
       return;
     }
+    
+    const finalAttributesToExport = attributesToExport.filter(attr => attr);
+    if (finalAttributesToExport.length === 0) {
+        setError("Please select at least one column to export.");
+        return;
+    }
 
     setLog('Generating CSV file...');
     setError('');
@@ -166,11 +224,13 @@ const ExportByAttribute = () => {
       let hits = [];
 
       if (exportMode === 'byID') {
-        const { results } = await index.getObjects(values);
+        const { results } = await index.getObjects(values, {
+            attributesToRetrieve: finalAttributesToExport
+        });
         hits = results.filter(record => record !== null);
-      } else { // exportMode === 'byDistinct'
+      } else { 
         if (!distinctAttribute) {
-          throw new Error("Please sync the distinct attribute before exporting.");
+          throw new Error("Please sync the index data before exporting in distinct mode.");
         }
         
         let allFoundObjects = [];
@@ -178,6 +238,7 @@ const ExportByAttribute = () => {
           const tempHits = [];
           await index.browseObjects({
             filters: `${distinctAttribute}:"${value}"`,
+            attributesToRetrieve: finalAttributesToExport,
             batch: (batch) => {
               tempHits.push(...batch);
             }
@@ -187,7 +248,7 @@ const ExportByAttribute = () => {
         hits = allFoundObjects;
       }
       
-      generateCsv(hits);
+      generateCsv(hits, finalAttributesToExport); 
       setLog(`${hits.length} records successfully exported.`);
     } catch (err) {
       setError('Error generating CSV file: ' + err.message);
@@ -212,7 +273,7 @@ const ExportByAttribute = () => {
       <FullPageLoader isLoading={isLoading} />
       <h1>Export by Attribute</h1>
       <InfoBlock title="How this works">
-        Use this module to export records from an Algolia index using either their unique `objectID` or a shared `distinct` attribute value.
+        Use this module to export records from an Algolia index using either their unique `objectID` or a shared `distinct` attribute value. You can select which columns to include in the export.
       </InfoBlock>
 
       <SectionBlock title="Export Mode">
@@ -250,18 +311,38 @@ const ExportByAttribute = () => {
                 )}
               </AutocompleteContainer>
             </div>
-            {exportMode === 'byDistinct' && (
-              <div style={{marginTop: '15px'}}>
-                <StyledButton onClick={handleSyncDistinctAttribute} label="Sync Distinct Attribute" icon="🔄" />
-                {distinctAttribute && (
-                  <p style={{ fontStyle: 'italic', display: 'inline-block', marginLeft: '15px' }}>
-                    Detected Attribute: <strong>{distinctAttribute}</strong>
-                  </p>
-                )}
-              </div>
+            <StyledButton onClick={synchronizeIndexData} label="Sync Index Data" icon="🔄" />
+            {exportMode === 'byDistinct' && distinctAttribute && (
+              <p style={{ fontStyle: 'italic', display: 'inline-block', marginLeft: '15px' }}>
+                Detected Distinct Attribute: <strong>{distinctAttribute}</strong>
+              </p>
             )}
         </div>
       </SectionBlock>
+      
+      {availableAttributes.length > 0 && (
+        <SectionBlock title="Columns to Export">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {attributesToExport.map((attr, idx) => (
+              <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <select 
+                  value={attr} 
+                  onChange={(e) => handleAttributeChange(e.target.value, idx)} 
+                  style={{ width: '60%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                >
+                  <option value="">-- Select Attribute --</option>
+                  {availableAttributes.map((a, i) => (<option key={i} value={a}>{a}</option>))}
+                </select>
+                {idx === attributesToExport.length - 1 ? (
+                  <StyledButton onClick={handleAddAttribute} label="Add column" icon="➕" color="#1abc9c" />
+                ) : (
+                  <StyledButton onClick={() => handleRemoveAttribute(idx)} label="Remove column" icon="✖" color="#e74c3c" />
+                )}
+              </div>
+            ))}
+          </div>
+        </SectionBlock>
+      )}
 
       <SectionBlock title="Values to Export">
         <label>

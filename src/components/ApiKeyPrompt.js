@@ -1,5 +1,6 @@
 // src/components/ApiKeyPrompt.js
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
 
 const promptStyle = {
   position: 'fixed',
@@ -40,23 +41,22 @@ const buttonStyle = {
   cursor: 'pointer',
 };
 
-// MODIFIÉ : Le nom de la prop `onApiKeySet` est changé en `onSave` pour plus de clarté
 const ApiKeyPrompt = ({ onSave, onCancel }) => {
   const [key, setKey] = useState('');
-  const [id, setId] = useState(''); // NOUVEAU : état pour l'App ID
+  const [id, setId] = useState('');
 
   const handleSaveClick = () => {
     if (key && id) {
-      onSave({ newKey: key, newId: id }); // NOUVEAU : on envoie un objet avec les deux valeurs
+      onSave({ newKey: key, newId: id });
     }
   };
 
-  return (
+  // Utilisation d'un portail pour rendre le modal directement dans le body
+  return ReactDOM.createPortal(
     <div style={promptStyle} onClick={onCancel}>
       <div style={contentStyle} onClick={(e) => e.stopPropagation()}>
         <h2>Add Credentials</h2>
         
-        {/* NOUVEAU : Champ pour l'App ID */}
         <div>
           <label>App ID:</label>
           <input
@@ -82,7 +82,8 @@ const ApiKeyPrompt = ({ onSave, onCancel }) => {
         <button onClick={handleSaveClick} style={buttonStyle}>Save</button>
         <button onClick={onCancel} style={{...buttonStyle, backgroundColor: '#6c757d', marginLeft: '10px'}}>Cancel</button>
       </div>
-    </div>
+    </div>,
+    document.body  // Le modal sera rendu directement dans le body
   );
 };
 

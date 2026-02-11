@@ -148,39 +148,34 @@ const ExportByAttribute = () => {
     }
 
     const escapeCsvValue = (value) => {
-      if (value === null || value === undefined) {
-        return '';
-      }
+  if (value === null || value === undefined) {
+    return '';
+  }
 
-      let stringValue;
-      
-      // Étape 1 : Convertir les objets/tableaux en JSON string
-      if (typeof value === 'object') {
-        stringValue = JSON.stringify(value);
-      } else {
-        stringValue = String(value);
-      }
+  let stringValue;
+  
+  if (typeof value === 'object') {
+    stringValue = JSON.stringify(value);
+  } else {
+    stringValue = String(value);
+  }
 
-      // Étape 2 : Vérifier si on doit ajouter des guillemets
-      // On le fait si la chaîne contient :
-      // - le séparateur (;)
-      // - un retour à la ligne (\n, \r)
-      // - des balises <br> ou <br/>
-      // - des guillemets existants
-      const needsQuotes = stringValue.includes(';') || 
-                          stringValue.includes('\n') || 
-                          stringValue.includes('\r') ||
-                          stringValue.includes('<br>') ||
-                          stringValue.includes('<br/>') ||
-                          stringValue.includes('"');
+  // Remplacer les retours à la ligne et <br> par des espaces
+  stringValue = stringValue
+    .replace(/<br\s*\/?>/gi, ' ')  // <br>, <br/>, <br />
+    .replace(/[\r\n]+/g, ' ')       // \r, \n, \r\n
+    .replace(/\s+/g, ' ')           // Nettoyer les espaces multiples
+    .trim();
 
-      if (needsQuotes) {
-        // Si on ajoute des guillemets, on doit échapper ceux à l'intérieur
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      
-      return stringValue;
-    };
+  // Vérifier si on doit ajouter des guillemets (séparateur ou guillemets existants)
+  const needsQuotes = stringValue.includes(';') || stringValue.includes('"');
+
+  if (needsQuotes) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  
+  return stringValue;
+  };
 
     const csvRows = [selectedAttributes.join(';')]; 
     

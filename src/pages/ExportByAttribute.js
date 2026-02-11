@@ -44,7 +44,7 @@ const ExportByAttribute = () => {
   const [valuesToExport, setValuesToExport] = useState('');
   const [exportMode, setExportMode] = useState('byID');
   const [distinctAttribute, setDistinctAttribute] = useState('');
-  const [attributesToExport, setAttributesToExport] = useState(['objectID']);
+  const [attributesToExport, setAttributesToExport] = useState(['']);
   const [availableAttributes, setAvailableAttributes] = useState([]);
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
@@ -148,34 +148,35 @@ const ExportByAttribute = () => {
     }
 
     const escapeCsvValue = (value) => {
-  if (value === null || value === undefined) {
-    return '';
-  }
+      if (value === null || value === undefined) {
+        return '';
+      }
 
-  let stringValue;
-  
-  if (typeof value === 'object') {
-    stringValue = JSON.stringify(value);
-  } else {
-    stringValue = String(value);
-  }
+      let stringValue;
+      
+      // Étape 1 : Convertir les objets/tableaux en JSON string
+      if (typeof value === 'object') {
+        stringValue = JSON.stringify(value);
+      } else {
+        stringValue = String(value);
+      }
 
-  // Remplacer les retours à la ligne et <br> par des espaces
-  stringValue = stringValue
-    .replace(/<br\s*\/?>/gi, ' ')  // <br>, <br/>, <br />
-    .replace(/[\r\n]+/g, ' ')       // \r, \n, \r\n
-    .replace(/\s+/g, ' ')           // Nettoyer les espaces multiples
-    .trim();
+      // Étape 2 : Remplacer les retours à la ligne et <br> par des espaces
+      stringValue = stringValue
+        .replace(/<br\s*\/?>/gi, ' ')  // <br>, <br/>, <br />
+        .replace(/[\r\n]+/g, ' ')       // \r, \n, \r\n
+        .replace(/\s+/g, ' ')           // Nettoyer les espaces multiples
+        .trim();
 
-  // Vérifier si on doit ajouter des guillemets (séparateur ou guillemets existants)
-  const needsQuotes = stringValue.includes(';') || stringValue.includes('"');
+      // Étape 3 : Vérifier si on doit ajouter des guillemets
+      const needsQuotes = stringValue.includes(';') || stringValue.includes('"');
 
-  if (needsQuotes) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
-  }
-  
-  return stringValue;
-  };
+      if (needsQuotes) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      
+      return stringValue;
+    };
 
     const csvRows = [selectedAttributes.join(';')]; 
     
@@ -207,11 +208,9 @@ const ExportByAttribute = () => {
       return;
     }
     
-    const finalAttributesToExport = attributesToExport.filter(attr => attr);
-    if (finalAttributesToExport.length === 0) {
-        setError("Please select at least one column to export.");
-        return;
-    }
+    // Si aucun attribut sélectionné, on exporte tout (pas de filtre)
+    const selectedAttributes = attributesToExport.filter(attr => attr);
+    const exportAll = selectedAttributes.length === 0;
 
     setLog('Generating CSV file...');
     setError('');
@@ -224,9 +223,8 @@ const ExportByAttribute = () => {
       let hits = [];
 
       if (exportMode === 'byID') {
-        const { results } = await index.getObjects(values, {
-            attributesToRetrieve: finalAttributesToExport
-        });
+        const options = exportAll ? {} : { attributesToRetrieve: selectedAttributes };
+        const { results } = await index.getObjects(values, options);
         hits = results.filter(record => record !== null);
       } else { 
         if (!distinctAttribute) {
@@ -236,20 +234,34 @@ const ExportByAttribute = () => {
         let allFoundObjects = [];
         for (const value of values) {
           const tempHits = [];
-          await index.browseObjects({
+          const browseOptions = {
             filters: `${distinctAttribute}:"${value}"`,
-            attributesToRetrieve: finalAttributesToExport,
             batch: (batch) => {
               tempHits.push(...batch);
             }
-          });
+          };
+          if (!exportAll) {
+            browseOptions.attributesToRetrieve = selectedAttributes;
+          }
+          await index.browseObjects(browseOptions);
           allFoundObjects.push(...tempHits);
         }
         hits = allFoundObjects;
       }
       
-      generateCsv(hits, finalAttributesToExport); 
-      setLog(`${hits.length} records successfully exported.`);
+      // Déterminer les colonnes à exporter
+      let finalColumns;
+      if (exportAll && hits.length > 0) {
+        // Récupérer tous les attributs de tous les hits
+        const allKeys = new Set();
+        hits.forEach(hit => Object.keys(hit).forEach(key => allKeys.add(key)));
+        finalColumns = [...allKeys].sort();
+      } else {
+        finalColumns = selectedAttributes;
+      }
+      
+      generateCsv(hits, finalColumns); 
+      setLog(`${hits.length} records successfully exported with ${finalColumns.length} columns.`);
     } catch (err) {
       setError('Error generating CSV file: ' + err.message);
     } finally {
@@ -273,7 +285,7 @@ const ExportByAttribute = () => {
       <FullPageLoader isLoading={isLoading} />
       <h1>Export by Attribute</h1>
       <InfoBlock title="How this works">
-        Use this module to export records from an Algolia index using either their unique `objectID` or a shared `distinct` attribute value. You can select which columns to include in the export.
+        Use this module to export records from an Algolia index using either their unique `objectID` or a shared `distinct` attribute value. You can select which columns to include in the export, or leave empty to export all attributes.
       </InfoBlock>
 
       <SectionBlock title="Export Mode">
@@ -321,7 +333,7 @@ const ExportByAttribute = () => {
       </SectionBlock>
       
       {availableAttributes.length > 0 && (
-        <SectionBlock title="Columns to Export">
+        <SectionBlock title="Columns to Export (leave empty to export all)">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {attributesToExport.map((attr, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

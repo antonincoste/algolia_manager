@@ -147,7 +147,6 @@ const ExportByAttribute = () => {
       throw new Error('No matching records found to export.');
     }
 
-    // *** CORRECTION DE LA LOGIQUE ICI ***
     const escapeCsvValue = (value) => {
       if (value === null || value === undefined) {
         return '';
@@ -159,25 +158,29 @@ const ExportByAttribute = () => {
       if (typeof value === 'object') {
         stringValue = JSON.stringify(value);
       } else {
-        // C'est déjà un string, number, or boolean
         stringValue = String(value);
       }
 
       // Étape 2 : Vérifier si on doit ajouter des guillemets
-      // On le fait seulement si la chaîne contient le séparateur (;)
-      // ou un retour à la ligne (\n).
-      const needsQuotes = stringValue.includes(';') || stringValue.includes('\n');
+      // On le fait si la chaîne contient :
+      // - le séparateur (;)
+      // - un retour à la ligne (\n, \r)
+      // - des balises <br> ou <br/>
+      // - des guillemets existants
+      const needsQuotes = stringValue.includes(';') || 
+                          stringValue.includes('\n') || 
+                          stringValue.includes('\r') ||
+                          stringValue.includes('<br>') ||
+                          stringValue.includes('<br/>') ||
+                          stringValue.includes('"');
 
       if (needsQuotes) {
         // Si on ajoute des guillemets, on doit échapper ceux à l'intérieur
         return `"${stringValue.replace(/"/g, '""')}"`;
       }
       
-      // Si pas besoin de guillemets (comme pour '["cat-yanis2"]'),
-      // on retourne la chaîne JSON telle quelle.
       return stringValue;
     };
-    // *** FIN DE LA CORRECTION ***
 
     const csvRows = [selectedAttributes.join(';')]; 
     

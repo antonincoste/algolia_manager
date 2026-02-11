@@ -57,7 +57,8 @@ const OfflineProducts = () => {
           log += `Index: ${indexName}, StyleMaterialColor: ${color}, Objects found: ${objects.length}, Objects updated: ${updatedObjects.length}\n`;
         }
 
-        logEntries.forEach(entry => log += entry + '\n');
+        // Correction : concaténation directe au lieu de forEach
+        log += logEntries.join('\n') + '\n';
         log += `Finish processing index ${indexName}, ${allUpdatedObjects.length} objects updated\n\n`;
       }
 

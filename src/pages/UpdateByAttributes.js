@@ -14,7 +14,7 @@ const UpdateByAttribute = () => {
   const [fileContent, setFileContent] = useState(null);
   const [previewRows, setPreviewRows] = useState([]);
   const [updateMode, setUpdateMode] = useState('byID'); // 'byID' ou 'byDistinct'
-  const [distinctAttr, setDistinctAttr] = useState('');
+  const [distinctAttr] = useState('');
   const [log, setLog] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);

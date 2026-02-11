@@ -1,5 +1,5 @@
 // src/pages/RecommendTester.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { recommendClient } from '@algolia/recommend';
 import { getApiKey, getAppId } from '../services/sessionService';

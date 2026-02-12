@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackExportCSV, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -159,6 +160,7 @@ const ExportByAttribute = () => {
       setLog(syncLog);
 
     } catch (err) {
+      trackError('export_by_attribute', err.message, 'sync_error');
       setError('Error during synchronization: ' + err.message);
     } finally {
       setIsLoading(false);
@@ -277,9 +279,11 @@ const ExportByAttribute = () => {
         finalColumns = selectedAttributes;
       }
       
-      generateCsv(hits, finalColumns); 
+      generateCsv(hits, finalColumns);
+      trackExportCSV(indexName, hits.length, exportMode);
       setLog(`${hits.length} records successfully exported with ${finalColumns.length} columns.`);
     } catch (err) {
+      trackError('export_by_attribute', err.message, 'export_error');
       setError('Error generating CSV file: ' + err.message);
     } finally {
       setIsLoading(false);

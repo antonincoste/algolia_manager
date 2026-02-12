@@ -1,6 +1,7 @@
 // src/pages/CopyRecommendations.js
 import React, { useState } from 'react';
 import { getApiKey } from '../services/sessionService';
+import { trackFeatureUsed, trackError } from '../services/analyticsService';
 import axios from 'axios';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
@@ -69,7 +70,13 @@ const CopyRecommendations = () => {
 
       log += `Log finished at: ${new Date().toLocaleString()}\n`;
       setLogOutput(log);
+      trackFeatureUsed('copy_recommendations', { 
+        targets_count: targetIndexes.length, 
+        rules_count: rules.length,
+        mode: mode 
+      });
     } catch (error) {
+      trackError('copy_recommendations', error.message, 'copy_error');
       setErrorMessage(`An error occurred: ${error.message}`);
     } finally {
       setIsLoading(false);

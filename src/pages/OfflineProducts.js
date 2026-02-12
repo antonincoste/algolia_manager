@@ -1,6 +1,7 @@
 // src/pages/OfflineProducts.js
 import React, { useState } from 'react';
 import { getApiKey } from '../services/sessionService';
+import { trackFeatureUsed, trackError } from '../services/analyticsService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
@@ -73,8 +74,10 @@ const OfflineProducts = () => {
 
       fullLog += `Log finished at: ${new Date().toLocaleString()}\n`;
       setLog(fullLog);
+      trackFeatureUsed('offline_products', { indexes_count: indexes.length });
 
     } catch (error) {
+      trackError('offline_products', error.message, 'offline_error');
       setErrorMessage(`An error occurred: ${error.message}`);
     } finally {
       setIsLoading(false);

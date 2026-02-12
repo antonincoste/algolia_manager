@@ -1,6 +1,7 @@
 // src/pages/QueryDecoder.js
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { trackQueryDecoder } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -91,6 +92,7 @@ const QueryDecoder = () => {
       }
       
       setJsonObject(decodedObject);
+      trackQueryDecoder();
     } catch (err) {
       setError("Failed to decode the query string. Please check the format.");
       console.error(err);

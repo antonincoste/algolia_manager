@@ -1,40 +1,43 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import Home from './pages/Home';
-import ExportDataByFilters from './pages/ExportDataByFilters';
-import ExportByAttribute from './pages/ExportByAttribute';
-import OfflineProducts from './pages/OfflineProducts';
-import CopyRecommendations from './pages/CopyRecommendations';
-import GlobalStyle from './styles/GlobalStyle';
-import UpdateByAttribute from './pages/UpdateByAttributes';
-import CopyData from './pages/CopyData';
-import GenerateFakeEvents from './pages/GenerateFakeEvents';
-import DeleteObjects from './pages/DeleteObjects';
-import CompareIndexesConfig from './pages/CompareIndexesConfig';
-import TopNoResultSearches from './pages/TopNoResultSearches';
-import QueryDecoder from './pages/QueryDecoder';
-import CloneIndex from './pages/CloneIndex';
-import RecommendTester from './pages/RecommendTester';
+import styled from 'styled-components';
+import Sidebar from './components/Sidebar.js';
+import Home from './pages/Home.js';
+import ExportDataByFilters from './pages/ExportDataByFilters.js';
+import ExportByAttribute from './pages/ExportByAttribute.js';
+import OfflineProducts from './pages/OfflineProducts.js';
+import CopyRecommendations from './pages/CopyRecommendations.js';
+import GlobalStyle from './styles/GlobalStyle.js';
+import UpdateByAttribute from './pages/UpdateByAttributes.js';
+import CopyData from './pages/CopyData.js';
+import GenerateFakeEvents from './pages/GenerateFakeEvents.js';
+import DeleteObjects from './pages/DeleteObjects.js';
+import CompareIndexesConfig from './pages/CompareIndexesConfig.js';
+import TopNoResultSearches from './pages/TopNoResultSearches.js';
+import QueryDecoder from './pages/QueryDecoder.js';
+import CloneIndex from './pages/CloneIndex.js';
+import RecommendTester from './pages/RecommendTester.js';
 
+const AppContainer = styled.div`
+  display: flex;
+  min-height: 100vh;
+`;
 
-// NOUVEAU : Style pour le conteneur du contenu principal
-const mainContentStyle = {
-  marginLeft: '280px', // Doit correspondre à la largeur de votre Sidebar
-  padding: '20px',
-  width: 'calc(100% - 250px)' // Optionnel, mais recommandé pour que le contenu occupe le reste de l'espace
-};
+const MainContent = styled.main`
+  margin-left: 280px;
+  padding: 32px 40px;
+  width: calc(100% - 280px);
+  min-height: 100vh;
+  background-color: var(--gray-100);
+`;
 
 const App = () => {
   return (
     <Router>
       <GlobalStyle />
-      
-      {/* MODIFIÉ : La structure globale gère maintenant la Sidebar et le contenu principal côte à côte */}
-      <div style={{ display: 'flex' }}>
+      <AppContainer>
         <Sidebar />
-        
-        <main style={mainContentStyle}>
+        <MainContent>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/export-by-attribute" element={<ExportByAttribute />} />
@@ -51,8 +54,8 @@ const App = () => {
             <Route path="/clone-index" element={<CloneIndex />} />
             <Route path="/recommend-tester" element={<RecommendTester />} />
           </Routes>
-        </main>
-      </div>
+        </MainContent>
+      </AppContainer>
     </Router>
   );
 };

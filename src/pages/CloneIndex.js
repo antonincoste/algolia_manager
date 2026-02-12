@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackCloneIndex, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -213,8 +214,13 @@ const CloneIndex = () => {
       }
       
       setLog(fullLog + '\n\n🎉 All operations completed successfully!');
+      trackCloneIndex(sourceIndex, targetIndex, { 
+        ...cloneOptions, 
+        differentApp: copyToDifferentApp 
+      });
 
     } catch (err) {
+      trackError('clone_index', err.message, 'clone_error');
       setError(`An error occurred: ${err.message}`);
     } finally {
       setIsLoading(false);

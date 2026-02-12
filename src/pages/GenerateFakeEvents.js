@@ -1,5 +1,6 @@
 // src/pages/GenerateFakeEvents.js
 import React, { useState } from 'react';
+import { trackGenerateFakeEvents, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -69,9 +70,11 @@ const GenerateFakeEvents = () => {
       link.click();
       document.body.removeChild(link);
 
+      trackGenerateFakeEvents(numEvents);
       setLog(`✅ Successfully generated and downloaded algolia_fake_events.csv with ${numEvents} events.`);
 
     } catch (err) {
+      trackError('generate_fake_events', err.message, 'generation_error');
       setError('An error occurred during file generation: ' + err.message);
     }
   };

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackDeleteObjects, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -103,7 +104,9 @@ const DeleteObjects = () => {
       }
 
       setLog(fullLog + '\nAll operations completed.');
+      trackDeleteObjects(targetIndexes.length, values.length, deleteByDistinct ? 'byDistinct' : 'byID');
     } catch (err) {
+      trackError('delete_objects', err.message, 'delete_error');
       setError(`An error occurred: ${err.message}`);
     } finally {
       setIsLoading(false);

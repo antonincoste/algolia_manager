@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { analyticsClient } from '@algolia/client-analytics';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackAnalyticsFetch, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -217,9 +218,11 @@ const TopNoResultSearches = () => {
         } else {
           setLog(`Found ${filteredSearches.length} searches with no results.`);
         }
+        trackAnalyticsFetch(currentParams.indexName, filteredSearches.length, currentParams.days);
       }
   
     } catch (err) {
+      trackError('top_no_results', err.message, 'analytics_error');
       setError(`An error occurred after all attempts: ${err.message}`);
       setLog('');
     } finally {

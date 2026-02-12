@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackCompareIndexes, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -300,8 +301,10 @@ const CompareIndexesConfig = () => {
           fetchedConfigs[indexName] = data;
         }));
         setConfigs(fetchedConfigs);
+        trackCompareIndexes(selectedIndexes.length, comparisonType);
         setLog('Configurations fetched successfully. Displaying comparison.');
       } catch (err) {
+        trackError('compare_indexes', err.message, 'fetch_error');
         setError('Failed to fetch configurations: ' + err.message);
         setConfigs(null);
       } finally {

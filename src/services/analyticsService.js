@@ -170,7 +170,7 @@ export const trackError = (feature, errorMessage, errorType = 'unknown') => {
   });
 };
 
-const analyticsService = {
+export default {
   trackEvent,
   trackFeatureUsed,
   trackExportCSV,
@@ -185,5 +185,3 @@ const analyticsService = {
   trackQueryDecoder,
   trackError
 };
-
-export default analyticsService;

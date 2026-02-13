@@ -17,6 +17,9 @@ import TopNoResultSearches from './pages/TopNoResultSearches.js';
 import QueryDecoder from './pages/QueryDecoder.js';
 import CloneIndex from './pages/CloneIndex.js';
 import RecommendTester from './pages/RecommendTester.js';
+import { initGA } from './services/analyticsService';
+
+initGA();
 
 const AppContainer = styled.div`
   display: flex;

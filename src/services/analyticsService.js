@@ -5,40 +5,9 @@
  * Wraps Google Analytics 4 gtag calls
  */
 
-const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID;
-
 // Check if gtag is available
 const isGtagAvailable = () => {
   return typeof window !== 'undefined' && typeof window.gtag === 'function';
-};
-
-// Check if analytics is enabled (has measurement ID)
-const isAnalyticsEnabled = () => {
-  return !!GA_MEASUREMENT_ID;
-};
-
-/**
- * Initialize Google Analytics (call this in your App.js or index.js)
- */
-export const initGA = () => {
-  if (!isAnalyticsEnabled()) {
-    console.log('[Analytics] No GA_MEASUREMENT_ID found, analytics disabled');
-    return;
-  }
-
-  // Add gtag script dynamically
-  const script1 = document.createElement('script');
-  script1.async = true;
-  script1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-  document.head.appendChild(script1);
-
-  // Initialize gtag
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function() { window.dataLayer.push(arguments); };
-  window.gtag('js', new Date());
-  window.gtag('config', GA_MEASUREMENT_ID);
-
-  console.log(`[Analytics] Initialized with ID: ${GA_MEASUREMENT_ID}`);
 };
 
 /**

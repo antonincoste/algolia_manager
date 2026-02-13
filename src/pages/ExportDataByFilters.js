@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackExportCSV, trackError } from '../services/analyticsService';
 import algoliasearch from 'algoliasearch';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
@@ -269,8 +270,10 @@ const ExportDataByFilters = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      trackExportCSV(indexName, finalObjects.length, 'byFilters');
       setLog(`${finalObjects.length} records successfully exported.`);
     } catch (err) {
+      trackError('export_by_filters', err.message, 'export_error');
       setError('Error generating CSV file: ' + err.message);
     } finally {
       setIsLoading(false);

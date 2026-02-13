@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 import algoliasearch from 'algoliasearch';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackBulkUpdate, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -201,7 +202,12 @@ const UpdateByAttribute = () => {
         }
       }
       setIndexResults(results);
+      const successCount = results.filter(r => r.status === 'success').length;
+      if (successCount > 0) {
+        trackBulkUpdate(indexes.length, fileContent.length - 1, updateMode);
+      }
     } catch (err) {
+      trackError('bulk_update', err.message, 'update_error');
       setError(`An unexpected error occurred: ${err.message}`);
     } finally {
       setIsLoading(false);

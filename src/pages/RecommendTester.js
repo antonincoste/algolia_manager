@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { recommendClient } from '@algolia/recommend';
 import { getApiKey, getAppId } from '../services/sessionService';
+import { trackRecommendTest, trackError } from '../services/analyticsService';
 import SectionBlock from '../components/SectionBlock';
 import InfoBlock from '../components/InfoBlock';
 import StyledButton from '../components/StyledButton';
@@ -149,10 +150,16 @@ const RecommendTester = () => {
       const { results } = await recommend.getRecommendations(parsedRequest.requests);
 
       const hits = results[0]?.hits || [];
-      setRecommendations(hits); 
+      setRecommendations(hits);
+      trackRecommendTest(
+        parsedRequest.requests[0]?.indexName || 'unknown',
+        parsedRequest.requests[0]?.model || 'unknown',
+        hits.length
+      );
       setLog(`✅ Successfully fetched ${hits.length} recommendations.`);
 
     } catch (err) {
+      trackError('recommend_tester', err.message, 'recommend_error');
       setError(`An error occurred: ${err.message}`);
     } finally {
       setIsLoading(false);
